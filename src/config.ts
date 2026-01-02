@@ -83,7 +83,7 @@ export interface Config {
  *
  * @example
  * ```typescript
- * const config = loadConfig('api-faker.json');
+ * const config = loadConfig('rest_api_faker.json');
  * if (config) {
  *   console.log('Loaded config:', config);
  * }
@@ -226,7 +226,7 @@ function validateConfig(config: Record<string, unknown>): void {
  *
  * @example
  * ```typescript
- * const fileConfig = loadConfig('api-faker.json');
+ * const fileConfig = loadConfig('rest_api_faker.json');
  * const merged = mergeConfig(cliArgs, fileConfig);
  * ```
  */

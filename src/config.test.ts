@@ -8,7 +8,7 @@ describe('config', () => {
   let testDir: string;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `api-faker-config-test-${String(Date.now())}`);
+    testDir = join(tmpdir(), `rest_api_faker-config-test-${String(Date.now())}`);
     mkdirSync(testDir, { recursive: true });
   });
 

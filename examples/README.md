@@ -73,14 +73,14 @@ The `routes.json` file contains URL rewrite rules as key-value pairs. Routes are
 **Usage:**
 
 ```bash
-api-faker db.json --routes examples/routes.json
+rest_api_faker db.json --routes examples/routes.json
 ```
 
 **Testing Examples:**
 
 ```bash
 # Start with routes
-api-faker db.json --routes examples/routes.json --port 3000
+rest_api_faker db.json --routes examples/routes.json --port 3000
 
 # Test the routes (assuming you have posts, news, profile in db.json)
 curl http://localhost:3000/api/posts              # → /posts
@@ -119,7 +119,7 @@ module.exports = function (req, res, next) {
 **Usage:**
 
 ```bash
-api-faker db.json --middlewares examples/custom-middleware.cjs
+rest_api_faker db.json --middlewares examples/custom-middleware.cjs
 ```
 
 **Middleware can:**
@@ -172,7 +172,7 @@ module.exports = function (req, res, next) {
 You can use both custom routes and middlewares together:
 
 ```bash
-api-faker db.json \\
+rest_api_faker db.json \\
   --routes examples/routes.json \\
   --middlewares examples/custom-middleware.cjs \\
   --port 3000
@@ -273,7 +273,7 @@ module.exports = function (req, res, next) {
 **4. Start the server:**
 
 ```bash
-api-faker db.json \\
+rest_api_faker db.json \\
   --routes routes.json \\
   --middlewares logging.cjs \\
   --port 3000
@@ -293,9 +293,9 @@ curl http://localhost:3000/posts/javascript    # → /posts?category=javascript
 
 ## Configuration File
 
-Instead of passing all options via command-line flags, you can use a configuration file. By default, API Faker looks for `api-faker.json` in the current directory.
+Instead of passing all options via command-line flags, you can use a configuration file. By default, API Faker looks for `rest_api_faker.json` in the current directory.
 
-### api-faker.json
+### rest_api_faker.json
 
 The configuration file supports all CLI options in JSON format:
 
@@ -336,14 +336,14 @@ The configuration file supports all CLI options in JSON format:
 **Usage:**
 
 ```bash
-# Uses default api-faker.json in current directory
-api-faker db.json
+# Uses default rest_api_faker.json in current directory
+rest_api_faker db.json
 
 # Use custom config file
-api-faker db.json --config my-config.json
+rest_api_faker db.json --config my-config.json
 
 # CLI arguments override config file
-api-faker db.json --port 4000  # Overrides port from config file
+rest_api_faker db.json --port 4000  # Overrides port from config file
 ```
 
 **Priority:**
@@ -375,10 +375,10 @@ CLI arguments take precedence over config file values. This allows you to set de
 
 ```bash
 # Development
-api-faker db.json --config dev.json
+rest_api_faker db.json --config dev.json
 
 # Production
-api-faker db.json --config prod.json
+rest_api_faker db.json --config prod.json
 ```
 
 ## Notes

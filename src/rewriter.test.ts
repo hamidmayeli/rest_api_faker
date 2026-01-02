@@ -10,7 +10,7 @@ describe('rewriter', () => {
   let testDir: string;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `api-faker-rewriter-test-${String(Date.now())}`);
+    testDir = join(tmpdir(), `rest_api_faker-rewriter-test-${String(Date.now())}`);
     mkdirSync(testDir, { recursive: true });
   });
 

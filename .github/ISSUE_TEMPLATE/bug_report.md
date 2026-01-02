@@ -33,7 +33,7 @@ assignees: ''
 
 ## Configuration
 
-<!-- If applicable, share your api-faker.json or CLI commands -->
+<!-- If applicable, share your rest_api_faker.json or CLI commands -->
 
 ```json
 {

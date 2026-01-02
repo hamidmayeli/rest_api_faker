@@ -45,6 +45,6 @@ Thumbs.db
 # API Faker specific
 db.json
 db.js
-api-faker.json
+rest_api_faker.json
 public/
 snapshots/

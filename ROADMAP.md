@@ -25,10 +25,10 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 
 ### 1.3 Basic CLI Structure
 
-- [x] Create CLI entry point (`bin/api-faker.js`)
+- [x] Create CLI entry point (`bin/rest_api_faker.js`)
 - [x] Set up command-line argument parsing (yargs/commander)
 - [x] Implement basic help and version commands
-- [x] Add config file support (`api-faker.json`)
+- [x] Add config file support (`rest_api_faker.json`)
 
 ## Phase 2: Core REST API
 
@@ -214,7 +214,7 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 
 ### 6.6 Config File
 
-- [x] Load `api-faker.json` config file
+- [x] Load `rest_api_faker.json` config file
 - [x] Support `--config` / `-c` for custom config path
 - [x] Merge CLI args with config file
 - [x] Validate configuration

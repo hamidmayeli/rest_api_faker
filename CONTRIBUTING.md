@@ -38,8 +38,8 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ```bash
 # Clone your fork
-git clone https://github.com/your-username/api-faker.git
-cd api-faker
+git clone https://github.com/your-username/rest_api_faker.git
+cd rest_api_faker
 
 # Install dependencies
 pnpm install
@@ -56,7 +56,7 @@ pnpm test
 ### Project Structure
 
 ```
-api-faker/
+rest_api_faker/
 ├── src/           # Source TypeScript files
 │   ├── cli.ts     # CLI entry point
 │   ├── server.ts  # Express server setup
@@ -240,7 +240,7 @@ test(query): add tests for pagination edge cases
 
 ## Reporting Bugs
 
-Use the [Bug Report](https://github.com/hamidmayeli/api-faker/issues/new?template=bug_report.md) template to report bugs.
+Use the [Bug Report](https://github.com/hamidmayeli/rest_api_faker/issues/new?template=bug_report.md) template to report bugs.
 
 Include:
 
@@ -248,11 +248,11 @@ Include:
 - Steps to reproduce
 - Expected vs actual behavior
 - Environment details (OS, Node.js version, etc.)
-- Configuration (api-faker.json or CLI commands)
+- Configuration (rest_api_faker.json or CLI commands)
 
 ## Suggesting Features
 
-Use the [Feature Request](https://github.com/hamidmayeli/api-faker/issues/new?template=feature_request.md) template to suggest features.
+Use the [Feature Request](https://github.com/hamidmayeli/rest_api_faker/issues/new?template=feature_request.md) template to suggest features.
 
 Include:
 
@@ -266,7 +266,7 @@ Include:
 
 ### NPM Publishing
 
-The package is published as `@hamid.mayeli/api-faker` (scoped package) to avoid naming conflicts.
+The package is published as `@hamid.mayeli/rest_api_faker` (scoped package) to avoid naming conflicts.
 
 To publish a new version:
 

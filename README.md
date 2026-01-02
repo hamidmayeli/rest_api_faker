@@ -4,8 +4,8 @@
 
 Created with ❤️ for front-end developers who need a quick back-end for prototyping and mocking.
 
-[![CI](https://github.com/hamidmayeli/api-faker/actions/workflows/ci.yml/badge.svg)](https://github.com/hamidmayeli/api-faker/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/hamidmayeli/api-faker/branch/main/graph/badge.svg)](https://codecov.io/gh/hamidmayeli/api-faker)
+[![CI](https://github.com/hamidmayeli/rest_api_faker/actions/workflows/ci.yml/badge.svg)](https://github.com/hamidmayeli/rest_api_faker/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/hamidmayeli/rest_api_faker/branch/main/graph/badge.svg)](https://codecov.io/gh/hamidmayeli/rest_api_faker)
 [![Tests](https://img.shields.io/badge/tests-223%20passing-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
@@ -81,13 +81,13 @@ pnpm add -g rest_api_faker
 **2. Start the server:**
 
 ```bash
-api-faker db.json
+rest_api_faker db.json
 ```
 
 Or with watch mode to auto-reload on file changes:
 
 ```bash
-api-faker --watch db.json
+rest_api_faker --watch db.json
 ```
 
 **3. Access your API:**
@@ -110,10 +110,10 @@ That's it! 🎉 You now have a fully functional REST API.
 ### CLI Options
 
 ```bash
-api-faker [options] <source>
+rest_api_faker [options] <source>
 
 Options:
-  -c, --config <path>          Path to config file (default: "api-faker.json")
+  -c, --config <path>          Path to config file (default: "rest_api_faker.json")
   -p, --port <number>          Set port (default: 3000)
   -H, --host <string>          Set host (default: "localhost")
   -w, --watch                  Watch file(s) for changes
@@ -133,11 +133,11 @@ Options:
   -v, --version                Show version number
 
 Examples:
-  api-faker db.json                    Start with db.json
-  api-faker --watch db.json            Start with auto-reload
-  api-faker --port 4000 db.json        Start on port 4000
-  api-faker file.js                    Use a JavaScript file
-  api-faker --routes routes.json       Use custom routes
+  rest_api_faker db.json                    Start with db.json
+  rest_api_faker --watch db.json            Start with auto-reload
+  rest_api_faker --port 4000 db.json        Start on port 4000
+  rest_api_faker file.js                    Use a JavaScript file
+  rest_api_faker --routes routes.json       Use custom routes
 ```
 
 ### Routes
@@ -301,7 +301,7 @@ POST /posts/1/comments
 
 ## Configuration
 
-You can use a configuration file instead of CLI options. Create an `api-faker.json` file:
+You can use a configuration file instead of CLI options. Create an `rest_api_faker.json` file:
 
 ```json
 {
@@ -324,13 +324,13 @@ You can use a configuration file instead of CLI options. Create an `api-faker.js
 Then simply run:
 
 ```bash
-api-faker db.json
+rest_api_faker db.json
 ```
 
 **Using a custom config file:**
 
 ```bash
-api-faker db.json --config my-config.json
+rest_api_faker db.json --config my-config.json
 ```
 
 **Note:** CLI arguments override config file values.
@@ -353,7 +353,7 @@ Create a `routes.json` file with URL rewrite rules:
 Use it:
 
 ```bash
-api-faker db.json --routes routes.json
+rest_api_faker db.json --routes routes.json
 ```
 
 Now you can access:
@@ -383,7 +383,7 @@ module.exports = function (req, res, next) {
 Use it:
 
 ```bash
-api-faker db.json --middlewares middleware.js
+rest_api_faker db.json --middlewares middleware.js
 ```
 
 See [examples/README.md](examples/README.md) for more examples.
@@ -394,19 +394,19 @@ See [examples/README.md](examples/README.md) for more examples.
 
 ```bash
 # Start with default settings
-api-faker db.json
+rest_api_faker db.json
 
 # Start with watch mode
-api-faker --watch db.json
+rest_api_faker --watch db.json
 
 # Start on a different port
-api-faker --port 4000 db.json
+rest_api_faker --port 4000 db.json
 
 # Read-only mode (only GET requests)
-api-faker --read-only db.json
+rest_api_faker --read-only db.json
 
 # Add delay to all responses (useful for testing loading states)
-api-faker --delay 1000 db.json
+rest_api_faker --delay 1000 db.json
 ```
 
 ### Using JavaScript for Dynamic Data
@@ -445,7 +445,7 @@ module.exports = function () {
 Start the server:
 
 ```bash
-api-faker db.js
+rest_api_faker db.js
 ```
 
 **Tip:** Use libraries like [Faker.js](https://fakerjs.dev/) for more realistic data.
@@ -479,7 +479,7 @@ module.exports = function (req, res, next) {
 Use it:
 
 ```bash
-api-faker db.json --middlewares auth-middleware.js
+rest_api_faker db.json --middlewares auth-middleware.js
 ```
 
 Now all POST, PUT, PATCH, DELETE requests require the `Authorization: Bearer secret-token` header.
@@ -511,7 +511,7 @@ Create a `vercel.json`:
 Create a `server.js`:
 
 ```javascript
-const jsonServer = require('api-faker');
+const jsonServer = require('rest_api_faker');
 const server = jsonServer.create();
 const router = jsonServer.router('db.json');
 const middlewares = jsonServer.defaults();
@@ -539,7 +539,7 @@ web: node server.js
 Create a `server.js`:
 
 ```javascript
-const jsonServer = require('api-faker');
+const jsonServer = require('rest_api_faker');
 const server = jsonServer.create();
 const router = jsonServer.router('db.json');
 const middlewares = jsonServer.defaults();
@@ -568,7 +568,7 @@ git push heroku main
 You can also use API Faker programmatically in your Node.js applications:
 
 ```javascript
-const jsonServer = require('api-faker');
+const jsonServer = require('rest_api_faker');
 const server = jsonServer.create();
 const router = jsonServer.router('db.json');
 const middlewares = jsonServer.defaults();

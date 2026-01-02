@@ -37,7 +37,7 @@ Created with <3 for front-end developers who need a quick back-end for prototypi
     - [Access control example](#access-control-example)
     - [Custom output example](#custom-output-example)
     - [Rewriter example](#rewriter-example)
-    - [Mounting API Faker on another endpoint example](#mounting-api-faker-on-another-endpoint-example)
+    - [Mounting API Faker on another endpoint example](#mounting-rest_api_faker-on-another-endpoint-example)
     - [API](#api)
   - [Deployment](#deployment)
 - [Links](#links)
@@ -53,16 +53,16 @@ Created with <3 for front-end developers who need a quick back-end for prototypi
 Install API Faker
 
 ```
-npm install -g api-faker@0.17.4    # NPM
-yarn global add api-faker@0.17.4   # Yarn
-pnpm add -g api-faker@0.17.4       # PNPM
+npm install -g rest_api_faker@0.17.4    # NPM
+yarn global add rest_api_faker@0.17.4   # Yarn
+pnpm add -g rest_api_faker@0.17.4       # PNPM
 ```
 
 Create a `db.json` file with some data
 
 ```json
 {
-  "posts": [{ "id": 1, "title": "api-faker", "author": "typicode" }],
+  "posts": [{ "id": 1, "title": "rest_api_faker", "author": "typicode" }],
   "comments": [{ "id": 1, "body": "some comment", "postId": 1 }],
   "profile": { "name": "typicode" }
 }
@@ -71,13 +71,13 @@ Create a `db.json` file with some data
 Start API Faker
 
 ```bash
-api-faker --watch db.json
+rest_api_faker --watch db.json
 ```
 
 Now if you go to [http://localhost:3000/posts/1](http://localhost:3000/posts/1), you'll get
 
 ```json
-{ "id": 1, "title": "api-faker", "author": "typicode" }
+{ "id": 1, "title": "rest_api_faker", "author": "typicode" }
 ```
 
 Also when doing requests, it's good to know that:
@@ -116,7 +116,7 @@ PATCH  /profile
 Use `.` to access deep properties
 
 ```
-GET /posts?title=api-faker&author=typicode
+GET /posts?title=rest_api_faker&author=typicode
 GET /posts?id=1&id=2
 GET /comments?author.name=typicode
 ```
@@ -236,11 +236,11 @@ or use `--static` to set a different static files directory.
 ```bash
 mkdir public
 echo 'hello world' > public/index.html
-api-faker db.json
+rest_api_faker db.json
 ```
 
 ```bash
-api-faker db.json --static ./some-other-dir
+rest_api_faker db.json --static ./some-other-dir
 ```
 
 ### Alternative port
@@ -248,7 +248,7 @@ api-faker db.json --static ./some-other-dir
 You can start API Faker on other ports with the `--port` flag:
 
 ```bash
-$ api-faker --watch db.json --port 3004
+$ rest_api_faker --watch db.json --port 3004
 ```
 
 ### Access from anywhere
@@ -260,8 +260,8 @@ You can access your fake API from anywhere using CORS and JSONP.
 You can load remote schemas.
 
 ```bash
-$ api-faker http://example.com/file.json
-$ api-faker http://jsonplaceholder.typicode.com/db
+$ rest_api_faker http://example.com/file.json
+$ rest_api_faker http://jsonplaceholder.typicode.com/db
 ```
 
 ### Generate random data
@@ -281,7 +281,7 @@ module.exports = () => {
 ```
 
 ```bash
-$ api-faker index.js
+$ rest_api_faker index.js
 ```
 
 **Tip** use modules like [Faker](https://github.com/faker-js/faker), [Casual](https://github.com/boo1ean/casual), [Chance](https://github.com/victorquinn/chancejs) or [JSON Schema Faker](https://github.com/json-schema-faker/json-schema-faker).
@@ -306,7 +306,7 @@ Create a `routes.json` file. Pay attention to start every route with `/`.
 Start API Faker with `--routes` option.
 
 ```bash
-api-faker db.json --routes routes.json
+rest_api_faker db.json --routes routes.json
 ```
 
 Now you can access resources using additional routes.
@@ -332,17 +332,17 @@ module.exports = (req, res, next) => {
 ```
 
 ```bash
-api-faker db.json --middlewares ./hello.js
-api-faker db.json --middlewares ./first.js ./second.js
+rest_api_faker db.json --middlewares ./hello.js
+rest_api_faker db.json --middlewares ./first.js ./second.js
 ```
 
 ### CLI usage
 
 ```
-api-faker [options] <source>
+rest_api_faker [options] <source>
 
 Options:
-  --config, -c       Path to config file           [default: "api-faker.json"]
+  --config, -c       Path to config file           [default: "rest_api_faker.json"]
   --port, -p         Set port                                    [default: 3000]
   --host, -H         Set host                             [default: "localhost"]
   --watch, -w        Watch file(s)                                     [boolean]
@@ -362,14 +362,14 @@ Options:
   --version, -v      Show version number                               [boolean]
 
 Examples:
-  api-faker db.json
-  api-faker file.js
-  api-faker http://example.com/db.json
+  rest_api_faker db.json
+  rest_api_faker file.js
+  rest_api_faker http://example.com/db.json
 
-https://github.com/typicode/api-faker
+https://github.com/typicode/rest_api_faker
 ```
 
-You can also set options in a `api-faker.json` configuration file.
+You can also set options in a `rest_api_faker.json` configuration file.
 
 ```json
 {
@@ -384,12 +384,12 @@ If you need to add authentication, validation, or **any behavior**, you can use 
 #### Simple example
 
 ```sh
-$ npm install api-faker --save-dev
+$ npm install rest_api_faker --save-dev
 ```
 
 ```js
 // server.js
-const jsonServer = require('api-faker');
+const jsonServer = require('rest_api_faker');
 const server = jsonServer.create();
 const router = jsonServer.router('db.json');
 const middlewares = jsonServer.defaults();
@@ -423,7 +423,7 @@ Please note also that `jsonServer.router()` can be used in existing Express proj
 Let's say you want a route that echoes query parameters and another one that set a timestamp on every resource created.
 
 ```js
-const jsonServer = require('api-faker');
+const jsonServer = require('rest_api_faker');
 const server = jsonServer.create();
 const router = jsonServer.router('db.json');
 const middlewares = jsonServer.defaults();
@@ -457,7 +457,7 @@ server.listen(3000, () => {
 #### Access control example
 
 ```js
-const jsonServer = require('api-faker');
+const jsonServer = require('rest_api_faker');
 const server = jsonServer.create();
 const router = jsonServer.router('db.json');
 const middlewares = jsonServer.defaults();

@@ -1,11 +1,11 @@
 {
   "name": "rest_api_faker",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Get a full fake REST API with zero coding in less than 30 seconds",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "rest_api_faker": "./bin/rest_api_faker.js"
+    "rest_api_faker": "./dist/cli.js"
   },
   "files": [
     "dist",
@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup && nodemon --watch dist --exec \"node bin/api-faker.js db.json\"",
+    "dev": "tsup && nodemon --watch dist --exec \"node dist/cli.js db.json\"",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest --coverage",

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { loadModule, loadMiddlewares } from './loader';
 
 describe('loader', () => {
-  const testDir = join(tmpdir(), 'api-faker-loader-test');
+  const testDir = join(tmpdir(), 'rest_api_faker-loader-test');
 
   beforeEach(() => {
     // Create test directory

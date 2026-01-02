@@ -3,7 +3,7 @@
  *
  * @example
  * ```typescript
- * import { create, router, defaults } from 'api-faker';
+ * import { create, router, defaults } from 'rest_api_faker';
  *
  * const server = create();
  * const apiRouter = router('db.json');

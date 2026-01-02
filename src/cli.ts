@@ -50,7 +50,7 @@ function getVersion(): string {
  */
 function parseCli(): CliConfig {
   const argv = yargs(hideBin(process.argv))
-    .scriptName('api-faker')
+    .scriptName('rest_api_faker')
     .usage('Usage: $0 [options] <source>')
     .example('$0 db.json', 'Start API Faker with db.json')
     .example('$0 file.js', 'Start API Faker with a JS file')
@@ -59,7 +59,7 @@ function parseCli(): CliConfig {
       alias: 'c',
       type: 'string',
       description: 'Path to config file',
-      default: 'api-faker.json',
+      default: 'rest_api_faker.json',
     })
     .option('port', {
       alias: 'p',
@@ -151,7 +151,7 @@ function parseCli(): CliConfig {
     .alias('h', 'help')
     .version(getVersion())
     .alias('v', 'version')
-    .epilogue('For more information, visit https://github.com/hamidmayeli/api-faker')
+    .epilogue('For more information, visit https://github.com/hamidmayeli/rest_api_faker')
     .parseSync();
 
   // Load config file if it exists
@@ -227,7 +227,7 @@ async function main(): Promise<void> {
 
   if (!config.source) {
     logger.error('No source file specified');
-    logger.info('Run "api-faker --help" for usage information');
+    logger.info('Run "rest_api_faker --help" for usage information');
     process.exit(1);
   }
 
