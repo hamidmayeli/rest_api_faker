@@ -343,7 +343,9 @@ describe('Router Integration Tests', () => {
       await request.put('/posts/1').send({ title: 'Updated Post' });
 
       // Read database file directly
-      const fileData = JSON.parse(readFileSync(testDbPath, 'utf-8')) as { posts: Array<{ id: number; title: string }> };
+      const fileData = JSON.parse(readFileSync(testDbPath, 'utf-8')) as {
+        posts: Array<{ id: number; title: string }>;
+      };
       expect(fileData.posts[0]).toEqual({ id: 1, title: 'Updated Post' });
     });
 
@@ -351,7 +353,9 @@ describe('Router Integration Tests', () => {
       await request.delete('/posts/1');
 
       // Read database file directly
-      const fileData = JSON.parse(readFileSync(testDbPath, 'utf-8')) as { posts: Array<{ id: number }> };
+      const fileData = JSON.parse(readFileSync(testDbPath, 'utf-8')) as {
+        posts: Array<{ id: number }>;
+      };
       expect(fileData.posts).toHaveLength(1);
       expect(fileData.posts.find((p) => p.id === 1)).toBeUndefined();
     });

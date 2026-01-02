@@ -16,10 +16,10 @@ export interface StaticOptions {
 
 /**
  * Create static file server middleware
- * 
+ *
  * @param options - Static server configuration
  * @returns Express middleware for serving static files
- * 
+ *
  * @example
  * ```typescript
  * const staticMiddleware = createStaticMiddleware({ directory: './public' });
@@ -48,7 +48,7 @@ export function createStaticMiddleware(options: StaticOptions = {}): RequestHand
 
 /**
  * Create homepage middleware that serves index.html or shows default page
- * 
+ *
  * @param options - Static server configuration
  * @returns Express request handler
  */

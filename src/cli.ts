@@ -6,6 +6,7 @@ import { watch } from 'chokidar';
 import { Database } from './database';
 import { createServer, startServer, ServerOptions } from './server';
 import { loadConfig, mergeConfig, Config } from './config';
+import { logger } from './logger';
 
 /**
  * CLI configuration interface
@@ -150,7 +151,7 @@ function parseCli(): CliConfig {
     .alias('h', 'help')
     .version(getVersion())
     .alias('v', 'version')
-    .epilogue('For more information, visit https://github.com/yourusername/api-faker')
+    .epilogue('For more information, visit https://github.com/hamidmayeli/api-faker')
     .parseSync();
 
   // Load config file if it exists
@@ -158,13 +159,15 @@ function parseCli(): CliConfig {
   try {
     fileConfig = loadConfig(argv.config);
   } catch (error) {
-    console.error(`Error loading config file: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Failed to load config file: ${error instanceof Error ? error.message : String(error)}`
+    );
     process.exit(1);
   }
 
   // Build CLI config object (only values explicitly provided by CLI)
   const cliConfig: Partial<Config> = {};
-  
+
   // Only include CLI values that were explicitly set (not defaults)
   // We check if the value is different from the default or if it was provided
   if (argv.port !== 3000) cliConfig.port = argv.port;
@@ -213,7 +216,7 @@ async function main(): Promise<void> {
   const config = parseCli();
 
   if (!config.quiet) {
-    console.log(`
+    logger.log(`
   ╔═══════════════════════════════════════╗
   ║                                       ║
   ║         API Faker v${getVersion().padEnd(19)}║
@@ -223,17 +226,17 @@ async function main(): Promise<void> {
   }
 
   if (!config.source) {
-    console.error('Error: No source file specified');
-    console.log('Run "api-faker --help" for usage information');
+    logger.error('No source file specified');
+    logger.info('Run "api-faker --help" for usage information');
     process.exit(1);
   }
 
   if (!config.quiet) {
-    console.log(`Source:  ${config.source}`);
-    console.log(`Port:    ${String(config.port)}`);
-    console.log(`Host:    ${config.host}`);
-    console.log();
-    console.log('Loading database...');
+    logger.info(`Source:  ${config.source}`);
+    logger.info(`Port:    ${String(config.port)}`);
+    logger.info(`Host:    ${config.host}`);
+    logger.log('');
+    logger.info('Loading database...');
   }
 
   try {
@@ -248,8 +251,8 @@ async function main(): Promise<void> {
     if (!config.quiet) {
       const data = db.getData();
       const resources = Object.keys(data);
-      console.log(`Loaded ${String(resources.length)} resource(s): ${resources.join(', ')}`);
-      console.log();
+      logger.success(`Loaded ${String(resources.length)} resource(s): ${resources.join(', ')}`);
+      logger.log('');
     }
 
     // Create and start server
@@ -302,9 +305,9 @@ async function main(): Promise<void> {
 
       watcher.on('change', (path) => {
         if (!config.quiet) {
-          console.log();
-          console.log(`File changed: ${path}`);
-          console.log('Reloading database...');
+          logger.log('');
+          logger.info(`File changed: ${path}`);
+          logger.info('Reloading database...');
         }
 
         db.init()
@@ -312,28 +315,32 @@ async function main(): Promise<void> {
             if (!config.quiet) {
               const data = db.getData();
               const resources = Object.keys(data);
-              console.log(`Reloaded ${String(resources.length)} resource(s): ${resources.join(', ')}`);
+              logger.success(
+                `Reloaded ${String(resources.length)} resource(s): ${resources.join(', ')}`
+              );
             }
           })
           .catch((error: unknown) => {
-            console.error('Error reloading database:', error instanceof Error ? error.message : 'Unknown error');
+            logger.error(
+              `Failed to reload database: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
           });
       });
 
       watcher.on('error', (error) => {
-        console.error('Watcher error:', error);
+        logger.error(`Watcher error: ${error instanceof Error ? error.message : String(error)}`);
       });
 
       if (!config.quiet) {
-        console.log(`Watching ${config.source} for changes...`);
-        console.log();
+        logger.info(`Watching ${config.source} for changes...`);
+        logger.log('');
       }
 
       // Handle graceful shutdown
       process.on('SIGINT', () => {
         if (!config.quiet) {
-          console.log();
-          console.log('Shutting down...');
+          logger.log('');
+          logger.info('Shutting down...');
         }
         watcher.close().catch(() => {
           // Ignore errors during shutdown
@@ -343,15 +350,14 @@ async function main(): Promise<void> {
         });
       });
     }
-
   } catch (error) {
-    console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
+    logger.error(error instanceof Error ? error.message : 'Unknown error');
     process.exit(1);
   }
 }
 
 // Run CLI
 main().catch((error: unknown) => {
-  console.error('Fatal error:', error instanceof Error ? error.message : 'Unknown error');
+  logger.error(`Fatal error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   process.exit(1);
 });

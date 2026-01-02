@@ -62,7 +62,7 @@ describe('Relationships', () => {
 
     it('should embed children into parent records', () => {
       const result = embedChildren(users, 'users', 'posts', db, 'id', 'Id');
-      
+
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
         id: 1,
@@ -81,7 +81,7 @@ describe('Relationships', () => {
 
     it('should handle multiple child collections', () => {
       const result = embedChildren(posts, 'posts', 'comments', db, 'id', 'Id');
-      
+
       expect(result[0]).toMatchObject({
         id: 1,
         userId: 1,
@@ -106,8 +106,15 @@ describe('Relationships', () => {
     });
 
     it('should handle empty children arrays', () => {
-      const result = embedChildren([{ id: 99, name: 'New User' }], 'users', 'posts', db, 'id', 'Id');
-      
+      const result = embedChildren(
+        [{ id: 99, name: 'New User' }],
+        'users',
+        'posts',
+        db,
+        'id',
+        'Id'
+      );
+
       expect(result[0]).toMatchObject({
         id: 99,
         name: 'New User',
@@ -117,7 +124,7 @@ describe('Relationships', () => {
 
     it('should handle non-existent child collections', () => {
       const result = embedChildren(users, 'users', 'nonexistent', db, 'id', 'Id');
-      
+
       expect(result[0]).toMatchObject({
         id: 1,
         name: 'Alice',
@@ -131,8 +138,15 @@ describe('Relationships', () => {
         posts: [{ id: 1, user_id: 1, title: 'Post 1' }],
       });
 
-      const result = embedChildren(customDb.getCollection('users') as Array<Record<string, unknown>>, 'users', 'posts', customDb, 'user_id', '_id');
-      
+      const result = embedChildren(
+        customDb.getCollection('users') as Array<Record<string, unknown>>,
+        'users',
+        'posts',
+        customDb,
+        'user_id',
+        '_id'
+      );
+
       expect(result[0]).toMatchObject({
         user_id: 1,
         name: 'Alice',
@@ -160,7 +174,7 @@ describe('Relationships', () => {
 
     it('should expand parent into child records', () => {
       const result = expandParent(posts, 'posts', 'users', db, 'id', 'Id');
-      
+
       expect(result).toHaveLength(3);
       expect(result[0]).toMatchObject({
         id: 1,
@@ -196,7 +210,7 @@ describe('Relationships', () => {
 
       let result = expandParent(postsWithCategory, 'posts', 'users', fullDb, 'id', 'Id');
       result = expandParent(result, 'posts', 'categories', fullDb, 'id', 'Id');
-      
+
       expect(result[0]).toMatchObject({
         id: 1,
         userId: 1,
@@ -210,7 +224,7 @@ describe('Relationships', () => {
     it('should handle missing parent', () => {
       const orphanPost = [{ id: 99, userId: 999, title: 'Orphan Post' }];
       const result = expandParent(orphanPost, 'posts', 'users', db, 'id', 'Id');
-      
+
       expect(result[0]).toMatchObject({
         id: 99,
         userId: 999,
@@ -221,7 +235,7 @@ describe('Relationships', () => {
 
     it('should handle non-existent parent collection', () => {
       const result = expandParent(posts, 'posts', 'nonexistent', db, 'id', 'Id');
-      
+
       expect(result).toHaveLength(3);
       expect(result[0]).not.toHaveProperty('nonexistent');
     });
@@ -232,8 +246,15 @@ describe('Relationships', () => {
         posts: [{ id: 1, user_id: 1, title: 'Post 1' }],
       });
 
-      const result = expandParent(customDb.getCollection('posts') as Array<Record<string, unknown>>, 'posts', 'users', customDb, 'user_id', '_id');
-      
+      const result = expandParent(
+        customDb.getCollection('posts') as Array<Record<string, unknown>>,
+        'posts',
+        'users',
+        customDb,
+        'user_id',
+        '_id'
+      );
+
       expect(result[0]).toMatchObject({
         id: 1,
         user_id: 1,
@@ -267,16 +288,8 @@ describe('Relationships', () => {
     });
 
     it('should apply both embed and expand', () => {
-      const result = applyRelationships(
-        posts,
-        'posts',
-        ['comments'],
-        ['users'],
-        db,
-        'id',
-        'Id'
-      );
-      
+      const result = applyRelationships(posts, 'posts', ['comments'], ['users'], db, 'id', 'Id');
+
       expect(result).toHaveLength(3);
       expect(result[0]).toMatchObject({
         id: 1,
@@ -292,7 +305,7 @@ describe('Relationships', () => {
 
     it('should handle only embed', () => {
       const result = applyRelationships(users, 'users', ['posts'], [], db, 'id', 'Id');
-      
+
       expect(result[0]).toMatchObject({
         id: 1,
         name: 'Alice',
@@ -306,7 +319,7 @@ describe('Relationships', () => {
 
     it('should handle only expand', () => {
       const result = applyRelationships(posts, 'posts', [], ['users'], db, 'id', 'Id');
-      
+
       expect(result[0]).toMatchObject({
         id: 1,
         userId: 1,
@@ -318,7 +331,7 @@ describe('Relationships', () => {
 
     it('should handle no relationships', () => {
       const result = applyRelationships(posts, 'posts', [], [], db, 'id', 'Id');
-      
+
       expect(result).toEqual(posts);
     });
   });
@@ -327,7 +340,7 @@ describe('Relationships', () => {
     it('should parse single _embed parameter', () => {
       const query = { _embed: 'posts' };
       const { embed, expand } = parseRelationships(query);
-      
+
       expect(embed).toEqual(['posts']);
       expect(expand).toEqual([]);
     });
@@ -335,7 +348,7 @@ describe('Relationships', () => {
     it('should parse multiple _embed parameters', () => {
       const query = { _embed: ['posts', 'comments'] };
       const { embed, expand } = parseRelationships(query);
-      
+
       expect(embed).toEqual(['posts', 'comments']);
       expect(expand).toEqual([]);
     });
@@ -343,7 +356,7 @@ describe('Relationships', () => {
     it('should parse single _expand parameter', () => {
       const query = { _expand: 'user' };
       const { embed, expand } = parseRelationships(query);
-      
+
       expect(embed).toEqual([]);
       expect(expand).toEqual(['user']);
     });
@@ -351,7 +364,7 @@ describe('Relationships', () => {
     it('should parse multiple _expand parameters', () => {
       const query = { _expand: ['user', 'category'] };
       const { embed, expand } = parseRelationships(query);
-      
+
       expect(embed).toEqual([]);
       expect(expand).toEqual(['user', 'category']);
     });
@@ -359,7 +372,7 @@ describe('Relationships', () => {
     it('should parse both _embed and _expand', () => {
       const query = { _embed: 'comments', _expand: 'user' };
       const { embed, expand } = parseRelationships(query);
-      
+
       expect(embed).toEqual(['comments']);
       expect(expand).toEqual(['user']);
     });
@@ -367,7 +380,7 @@ describe('Relationships', () => {
     it('should handle missing relationship parameters', () => {
       const query = {};
       const { embed, expand } = parseRelationships(query);
-      
+
       expect(embed).toEqual([]);
       expect(expand).toEqual([]);
     });
@@ -375,7 +388,7 @@ describe('Relationships', () => {
     it('should handle empty arrays', () => {
       const query = { _embed: [], _expand: [] };
       const { embed, expand } = parseRelationships(query);
-      
+
       expect(embed).toEqual([]);
       expect(expand).toEqual([]);
     });

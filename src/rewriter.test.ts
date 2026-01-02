@@ -17,16 +17,19 @@ describe('rewriter', () => {
   describe('loadRewriteRules', () => {
     it('should load valid JSON route mappings', async () => {
       const routesFile = join(testDir, 'routes.json');
-      writeFileSync(routesFile, JSON.stringify({
-        '/api/*': '/$1',
-        '/me': '/profile'
-      }));
+      writeFileSync(
+        routesFile,
+        JSON.stringify({
+          '/api/*': '/$1',
+          '/me': '/profile',
+        })
+      );
 
       const rules = await loadRewriteRules(routesFile);
 
       expect(rules).toEqual({
         '/api/*': '/$1',
-        '/me': '/profile'
+        '/me': '/profile',
       });
 
       rmSync(testDir, { recursive: true, force: true });
@@ -36,18 +39,25 @@ describe('rewriter', () => {
       const routesFile = join(testDir, 'routes.json');
       writeFileSync(routesFile, '[]');
 
-      await expect(loadRewriteRules(routesFile)).rejects.toThrow('Routes file must contain a JSON object');
+      await expect(loadRewriteRules(routesFile)).rejects.toThrow(
+        'Routes file must contain a JSON object'
+      );
 
       rmSync(testDir, { recursive: true, force: true });
     });
 
     it('should throw error for non-string values', async () => {
       const routesFile = join(testDir, 'routes.json');
-      writeFileSync(routesFile, JSON.stringify({
-        '/api/*': 123
-      }));
+      writeFileSync(
+        routesFile,
+        JSON.stringify({
+          '/api/*': 123,
+        })
+      );
 
-      await expect(loadRewriteRules(routesFile)).rejects.toThrow("Route mapping for '/api/*' must be a string");
+      await expect(loadRewriteRules(routesFile)).rejects.toThrow(
+        "Route mapping for '/api/*' must be a string"
+      );
 
       rmSync(testDir, { recursive: true, force: true });
     });
@@ -79,10 +89,10 @@ describe('rewriter', () => {
 
     it('should rewrite wildcard patterns', async () => {
       const rewriter = createRewriterMiddleware({
-        '/api/*': '/$1'
+        '/api/*': '/$1',
       });
       app.use(rewriter);
-      
+
       // Add catch-all route
       app.use((req, res) => {
         res.json({ url: req.url });
@@ -94,10 +104,10 @@ describe('rewriter', () => {
 
     it('should rewrite exact matches', async () => {
       const rewriter = createRewriterMiddleware({
-        '/me': '/profile'
+        '/me': '/profile',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });
@@ -108,10 +118,10 @@ describe('rewriter', () => {
 
     it('should rewrite named parameters', async () => {
       const rewriter = createRewriterMiddleware({
-        '/:resource/:id/show': '/:resource/:id'
+        '/:resource/:id/show': '/:resource/:id',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });
@@ -122,10 +132,10 @@ describe('rewriter', () => {
 
     it('should rewrite to query strings', async () => {
       const rewriter = createRewriterMiddleware({
-        '/news/top': '/news?_sort=date&_order=asc&_limit=10'
+        '/news/top': '/news?_sort=date&_order=asc&_limit=10',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });
@@ -136,10 +146,10 @@ describe('rewriter', () => {
 
     it('should rewrite parameters to query strings', async () => {
       const rewriter = createRewriterMiddleware({
-        '/posts/:category': '/posts?category=:category'
+        '/posts/:category': '/posts?category=:category',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });
@@ -150,10 +160,10 @@ describe('rewriter', () => {
 
     it('should rewrite with multiple wildcards', async () => {
       const rewriter = createRewriterMiddleware({
-        '/api/v1/*': '/v1/$1'
+        '/api/v1/*': '/v1/$1',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });
@@ -165,10 +175,10 @@ describe('rewriter', () => {
     it('should apply only the first matching rule', async () => {
       const rewriter = createRewriterMiddleware({
         '/posts/*': '/articles/$1',
-        '/posts/:id': '/items/:id'
+        '/posts/:id': '/items/:id',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });
@@ -179,10 +189,10 @@ describe('rewriter', () => {
 
     it('should not rewrite URLs that do not match any rule', async () => {
       const rewriter = createRewriterMiddleware({
-        '/api/*': '/$1'
+        '/api/*': '/$1',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });
@@ -193,10 +203,10 @@ describe('rewriter', () => {
 
     it('should preserve query strings when rewriting', async () => {
       const rewriter = createRewriterMiddleware({
-        '/api/*': '/$1'
+        '/api/*': '/$1',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });
@@ -207,10 +217,10 @@ describe('rewriter', () => {
 
     it('should handle nested path parameters', async () => {
       const rewriter = createRewriterMiddleware({
-        '/api/posts/:postId/comments/:commentId': '/comments/:commentId'
+        '/api/posts/:postId/comments/:commentId': '/comments/:commentId',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });
@@ -221,10 +231,10 @@ describe('rewriter', () => {
 
     it('should handle wildcard at the end', async () => {
       const rewriter = createRewriterMiddleware({
-        '/news/*': '/news'
+        '/news/*': '/news',
       });
       app.use(rewriter);
-      
+
       app.use((req, res) => {
         res.json({ url: req.url });
       });

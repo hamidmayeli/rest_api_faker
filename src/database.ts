@@ -29,10 +29,10 @@ export class Database {
 
   /**
    * Creates a new Database instance
-   * 
+   *
    * @param source - Path to JSON file or object with data
    * @param options - Database configuration options
-   * 
+   *
    * @example
    * ```typescript
    * const db = new Database('db.json', { idField: 'id' });
@@ -60,25 +60,30 @@ export class Database {
   /**
    * Initialize the database by reading from file or using provided data
    * Supports .json, .js, .ts, and .mjs files
-   * 
+   *
    * @throws Error if file doesn't exist or contains invalid data
    */
   async init(): Promise<void> {
     if (this.filePath && !existsSync(this.filePath)) {
-      throw new Error(`Database file not found: ${this.filePath}`);
+      const ext = this.filePath.endsWith('.js') ? '.js' : '.json';
+      throw new Error(
+        `Database file not found: ${this.filePath}\n` +
+          `\nMake sure the file exists and the path is correct.\n` +
+          `Expected format: ${ext === '.js' ? 'JavaScript module exporting data' : 'JSON file with data structure'}`
+      );
     }
 
     // Check if file is a JavaScript/TypeScript module
     if (this.filePath) {
       const ext = extname(this.filePath).toLowerCase();
-      
+
       if (ext === '.js' || ext === '.mjs' || ext === '.cjs' || ext === '.ts') {
         // Load JavaScript module
         try {
           const fileUrl = pathToFileURL(this.filePath).href;
           const module = (await import(fileUrl)) as { default?: unknown } & Record<string, unknown>;
           const data: unknown = module.default ?? module;
-          
+
           // If it's a function, call it to get the data
           if (typeof data === 'function') {
             const result: unknown = await Promise.resolve((data as () => unknown)());
@@ -120,7 +125,7 @@ export class Database {
 
   /**
    * Get all data from the database
-   * 
+   *
    * @returns Complete database data
    */
   getData(): DatabaseData {
@@ -129,7 +134,7 @@ export class Database {
 
   /**
    * Get a specific collection (array) or resource (object)
-   * 
+   *
    * @param name - Name of the collection/resource
    * @returns Collection array, resource object, or undefined
    */
@@ -139,14 +144,14 @@ export class Database {
 
   /**
    * Get a single item from a collection by ID
-   * 
+   *
    * @param collectionName - Name of the collection
    * @param id - ID of the item
    * @returns The item or undefined
    */
   getById(collectionName: string, id: string | number): unknown {
     const collection = this.db.data[collectionName];
-    
+
     if (!Array.isArray(collection)) {
       return undefined;
     }
@@ -162,13 +167,13 @@ export class Database {
 
   /**
    * Generate next ID for a collection
-   * 
+   *
    * @param collectionName - Name of the collection
    * @returns Next available ID
    */
   generateId(collectionName: string): number {
     const collection = this.db.data[collectionName];
-    
+
     if (!Array.isArray(collection)) {
       return 1;
     }
@@ -189,13 +194,16 @@ export class Database {
 
   /**
    * Create a new item in a collection
-   * 
+   *
    * @param collectionName - Name of the collection
    * @param data - Data to insert
    * @returns Created item with ID
    * @throws Error if collection is not an array
    */
-  async create(collectionName: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(
+    collectionName: string,
+    data: Record<string, unknown>
+  ): Promise<Record<string, unknown>> {
     let collection = this.db.data[collectionName];
 
     // Create collection if it doesn't exist
@@ -209,9 +217,10 @@ export class Database {
     }
 
     // Generate ID if not provided or use provided ID
-    const idValue: unknown = data[this.options.idField] !== undefined 
-      ? data[this.options.idField]
-      : this.generateId(collectionName);
+    const idValue: unknown =
+      data[this.options.idField] !== undefined
+        ? data[this.options.idField]
+        : this.generateId(collectionName);
 
     // Check if ID already exists
     const existingItem = this.getById(collectionName, idValue as string | number);
@@ -228,15 +237,19 @@ export class Database {
 
   /**
    * Update an item in a collection (full replacement)
-   * 
+   *
    * @param collectionName - Name of the collection
    * @param id - ID of the item
    * @param data - New data (ID field will be preserved)
    * @returns Updated item or undefined if not found
    */
-  async update(collectionName: string, id: string | number, data: Record<string, unknown>): Promise<Record<string, unknown> | undefined> {
+  async update(
+    collectionName: string,
+    id: string | number,
+    data: Record<string, unknown>
+  ): Promise<Record<string, unknown> | undefined> {
     const collection = this.db.data[collectionName];
-    
+
     if (!Array.isArray(collection)) {
       return undefined;
     }
@@ -265,15 +278,19 @@ export class Database {
 
   /**
    * Patch an item in a collection (partial update)
-   * 
+   *
    * @param collectionName - Name of the collection
    * @param id - ID of the item
    * @param data - Partial data to merge (ID field will be ignored)
    * @returns Updated item or undefined if not found
    */
-  async patch(collectionName: string, id: string | number, data: Record<string, unknown>): Promise<Record<string, unknown> | undefined> {
+  async patch(
+    collectionName: string,
+    id: string | number,
+    data: Record<string, unknown>
+  ): Promise<Record<string, unknown> | undefined> {
     const collection = this.db.data[collectionName];
-    
+
     if (!Array.isArray(collection)) {
       return undefined;
     }
@@ -303,14 +320,14 @@ export class Database {
 
   /**
    * Delete an item from a collection
-   * 
+   *
    * @param collectionName - Name of the collection
    * @param id - ID of the item
    * @returns true if deleted, false if not found
    */
   async delete(collectionName: string, id: string | number): Promise<boolean> {
     const collection = this.db.data[collectionName];
-    
+
     if (!Array.isArray(collection)) {
       return false;
     }
@@ -334,12 +351,15 @@ export class Database {
 
   /**
    * Update or create a singular resource
-   * 
+   *
    * @param resourceName - Name of the resource
    * @param data - Resource data
    * @returns Updated resource
    */
-  async updateSingular(resourceName: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async updateSingular(
+    resourceName: string,
+    data: Record<string, unknown>
+  ): Promise<Record<string, unknown>> {
     this.db.data[resourceName] = data;
     await this.save();
     return data;
@@ -354,7 +374,7 @@ export class Database {
 
   /**
    * Check if a resource is a collection (array) or singular (object)
-   * 
+   *
    * @param name - Name of the resource
    * @returns true if collection, false if singular or doesn't exist
    */

@@ -44,7 +44,7 @@ describe('Database', () => {
 
     it('should handle empty database', async () => {
       writeFileSync(testDbPath, JSON.stringify({}));
-      
+
       const db = new Database(testDbPath);
       await db.init();
 
@@ -120,9 +120,9 @@ describe('Database', () => {
       });
 
       it('should throw error if ID already exists', async () => {
-        await expect(
-          db.create('posts', { id: 1, title: 'Duplicate' })
-        ).rejects.toThrow('already exists');
+        await expect(db.create('posts', { id: 1, title: 'Duplicate' })).rejects.toThrow(
+          'already exists'
+        );
       });
 
       it('should create collection if it does not exist', async () => {
@@ -278,10 +278,7 @@ describe('Database', () => {
   describe('Configuration Options', () => {
     it('should use custom ID field', async () => {
       const testPath = resolve(__dirname, 'test-db-custom-id.json');
-      writeFileSync(
-        testPath,
-        JSON.stringify({ posts: [{ _id: 1, title: 'Post 1' }] })
-      );
+      writeFileSync(testPath, JSON.stringify({ posts: [{ _id: 1, title: 'Post 1' }] }));
 
       const db = new Database(testPath, { idField: '_id' });
       await db.init();

@@ -25,38 +25,44 @@ describe('config', () => {
 
     it('should load valid config file', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        port: 4000,
-        host: '0.0.0.0',
-        quiet: true
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          port: 4000,
+          host: '0.0.0.0',
+          quiet: true,
+        })
+      );
 
       const config = loadConfig(configPath);
       expect(config).toEqual({
         port: 4000,
         host: '0.0.0.0',
-        quiet: true
+        quiet: true,
       });
     });
 
     it('should load config with all valid options', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        port: 5000,
-        host: 'localhost',
-        watch: true,
-        routes: './routes.json',
-        middlewares: './middleware.js',
-        static: './dist',
-        readOnly: true,
-        noCors: true,
-        noGzip: true,
-        snapshots: './snapshots',
-        delay: 1000,
-        id: '_id',
-        foreignKeySuffix: '_id',
-        quiet: true
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          port: 5000,
+          host: 'localhost',
+          watch: true,
+          routes: './routes.json',
+          middlewares: './middleware.js',
+          static: './dist',
+          readOnly: true,
+          noCors: true,
+          noGzip: true,
+          snapshots: './snapshots',
+          delay: 1000,
+          id: '_id',
+          foreignKeySuffix: '_id',
+          quiet: true,
+        })
+      );
 
       const config = loadConfig(configPath);
       expect(config).toEqual({
@@ -73,7 +79,7 @@ describe('config', () => {
         delay: 1000,
         id: '_id',
         foreignKeySuffix: '_id',
-        quiet: true
+        quiet: true,
       });
     });
 
@@ -100,109 +106,151 @@ describe('config', () => {
 
     it('should throw error for unknown config option', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        port: 3000,
-        unknownOption: 'value'
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          port: 3000,
+          unknownOption: 'value',
+        })
+      );
 
       expect(() => loadConfig(configPath)).toThrow("Unknown config option: 'unknownOption'");
     });
 
     it('should throw error for invalid port type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        port: 'invalid'
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          port: 'invalid',
+        })
+      );
 
       expect(() => loadConfig(configPath)).toThrow("Config option 'port' must be a number");
     });
 
     it('should throw error for port out of range', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        port: 99999
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          port: 99999,
+        })
+      );
 
-      expect(() => loadConfig(configPath)).toThrow("Config option 'port' must be a number between 0 and 65535");
+      expect(() => loadConfig(configPath)).toThrow(
+        "Config option 'port' must be a number between 0 and 65535"
+      );
     });
 
     it('should throw error for invalid host type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        host: 123
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          host: 123,
+        })
+      );
 
       expect(() => loadConfig(configPath)).toThrow("Config option 'host' must be a string");
     });
 
     it('should throw error for invalid watch type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        watch: 'yes'
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          watch: 'yes',
+        })
+      );
 
       expect(() => loadConfig(configPath)).toThrow("Config option 'watch' must be a boolean");
     });
 
     it('should throw error for invalid routes type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        routes: 123
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          routes: 123,
+        })
+      );
 
       expect(() => loadConfig(configPath)).toThrow("Config option 'routes' must be a string");
     });
 
     it('should throw error for invalid middlewares type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        middlewares: ['array']
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          middlewares: ['array'],
+        })
+      );
 
       expect(() => loadConfig(configPath)).toThrow("Config option 'middlewares' must be a string");
     });
 
     it('should throw error for invalid delay type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        delay: -100
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          delay: -100,
+        })
+      );
 
-      expect(() => loadConfig(configPath)).toThrow("Config option 'delay' must be a non-negative number");
+      expect(() => loadConfig(configPath)).toThrow(
+        "Config option 'delay' must be a non-negative number"
+      );
     });
 
     it('should throw error for invalid id type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        id: 123
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          id: 123,
+        })
+      );
 
       expect(() => loadConfig(configPath)).toThrow("Config option 'id' must be a string");
     });
 
     it('should throw error for invalid foreignKeySuffix type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        foreignKeySuffix: true
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          foreignKeySuffix: true,
+        })
+      );
 
-      expect(() => loadConfig(configPath)).toThrow("Config option 'foreignKeySuffix' must be a string");
+      expect(() => loadConfig(configPath)).toThrow(
+        "Config option 'foreignKeySuffix' must be a string"
+      );
     });
 
     it('should throw error for invalid readOnly type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        readOnly: 'true'
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          readOnly: 'true',
+        })
+      );
 
       expect(() => loadConfig(configPath)).toThrow("Config option 'readOnly' must be a boolean");
     });
 
     it('should throw error for invalid quiet type', () => {
       const configPath = join(testDir, 'config.json');
-      writeFileSync(configPath, JSON.stringify({
-        quiet: 1
-      }));
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          quiet: 1,
+        })
+      );
 
       expect(() => loadConfig(configPath)).toThrow("Config option 'quiet' must be a boolean");
     });
@@ -212,7 +260,7 @@ describe('config', () => {
     it('should return CLI config when file config is null', () => {
       const cliConfig: Partial<Config> = {
         port: 4000,
-        host: 'localhost'
+        host: 'localhost',
       };
 
       const merged = mergeConfig(cliConfig, null);
@@ -223,7 +271,7 @@ describe('config', () => {
       const fileConfig: Config = {
         port: 5000,
         host: '0.0.0.0',
-        quiet: true
+        quiet: true,
       };
 
       const merged = mergeConfig({}, fileConfig);
@@ -233,27 +281,27 @@ describe('config', () => {
     it('should prioritize CLI config over file config', () => {
       const cliConfig: Partial<Config> = {
         port: 4000,
-        host: 'localhost'
+        host: 'localhost',
       };
 
       const fileConfig: Config = {
         port: 5000,
         host: '0.0.0.0',
-        quiet: true
+        quiet: true,
       };
 
       const merged = mergeConfig(cliConfig, fileConfig);
       expect(merged).toEqual({
-        port: 4000,        // From CLI
+        port: 4000, // From CLI
         host: 'localhost', // From CLI
-        quiet: true        // From file
+        quiet: true, // From file
       });
     });
 
     it('should merge all properties correctly', () => {
       const cliConfig: Partial<Config> = {
         port: 8080,
-        watch: true
+        watch: true,
       };
 
       const fileConfig: Config = {
@@ -261,37 +309,37 @@ describe('config', () => {
         host: 'localhost',
         routes: './routes.json',
         middlewares: './middleware.js',
-        quiet: true
+        quiet: true,
       };
 
       const merged = mergeConfig(cliConfig, fileConfig);
       expect(merged).toEqual({
-        port: 8080,                      // From CLI (overrides file)
-        watch: true,                     // From CLI
-        host: 'localhost',               // From file
-        routes: './routes.json',         // From file
-        middlewares: './middleware.js',  // From file
-        quiet: true                      // From file
+        port: 8080, // From CLI (overrides file)
+        watch: true, // From CLI
+        host: 'localhost', // From file
+        routes: './routes.json', // From file
+        middlewares: './middleware.js', // From file
+        quiet: true, // From file
       });
     });
 
     it('should handle boolean overrides correctly', () => {
       const cliConfig: Partial<Config> = {
         readOnly: true,
-        noCors: true
+        noCors: true,
       };
 
       const fileConfig: Config = {
         readOnly: false,
         noCors: false,
-        noGzip: true
+        noGzip: true,
       };
 
       const merged = mergeConfig(cliConfig, fileConfig);
       expect(merged).toEqual({
-        readOnly: true,  // From CLI
-        noCors: true,    // From CLI
-        noGzip: true     // From file
+        readOnly: true, // From CLI
+        noCors: true, // From CLI
+        noGzip: true, // From file
       });
     });
   });

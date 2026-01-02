@@ -5,6 +5,7 @@ This directory contains example files demonstrating how to extend API Faker with
 ## Custom Routes
 
 Custom routes allow you to rewrite URLs before they reach the API router. This is useful for:
+
 - Creating URL aliases
 - Supporting legacy API paths
 - Mapping complex URLs to simpler ones
@@ -29,29 +30,35 @@ The `routes.json` file contains URL rewrite rules as key-value pairs. Routes are
 **Pattern Types:**
 
 1. **Wildcard (`*`)**: Captures everything and references it as `$1`
+
    ```json
    {
      "/api/*": "/$1"
    }
    ```
+
    - `/api/posts` → `/posts`
    - `/api/posts/1` → `/posts/1`
 
 2. **Named Parameters (`:param`)**: Captures a path segment
+
    ```json
    {
      "/:resource/:id/show": "/:resource/:id"
    }
    ```
+
    - `/posts/1/show` → `/posts/1`
    - `/users/42/show` → `/users/42`
 
 3. **Query String Mapping**: Add query parameters to the rewritten URL
+
    ```json
    {
      "/posts/:category": "/posts?category=:category"
    }
    ```
+
    - `/posts/javascript` → `/posts?category=javascript`
 
 4. **Exact Match**: Simple one-to-one mapping
@@ -60,6 +67,7 @@ The `routes.json` file contains URL rewrite rules as key-value pairs. Routes are
      "/me": "/profile"
    }
    ```
+
    - `/me` → `/profile`
 
 **Usage:**
@@ -85,6 +93,7 @@ curl http://localhost:3000/news/top               # → /news?_sort=date&_order=
 ## Custom Middleware
 
 Custom middleware allows you to add functionality that runs on every request. This is useful for:
+
 - Adding custom headers
 - Logging requests
 - Authentication/authorization
@@ -95,13 +104,13 @@ Custom middleware allows you to add functionality that runs on every request. Th
 This example shows how to add custom middleware using CommonJS format:
 
 ```javascript
-module.exports = function(req, res, next) {
+module.exports = function (req, res, next) {
   // Add a custom header to all responses
   res.setHeader('X-Custom-API', 'API Faker');
-  
+
   // Log custom information
   console.log(`[Custom Middleware] ${req.method} ${req.url}`);
-  
+
   // Continue to next middleware
   next();
 };
@@ -114,6 +123,7 @@ api-faker db.json --middlewares examples/custom-middleware.cjs
 ```
 
 **Middleware can:**
+
 - Modify request objects
 - Modify response objects
 - End the request-response cycle
@@ -123,18 +133,18 @@ api-faker db.json --middlewares examples/custom-middleware.cjs
 
 ```javascript
 // auth-middleware.cjs
-module.exports = function(req, res, next) {
+module.exports = function (req, res, next) {
   const token = req.headers.authorization;
-  
+
   if (!token) {
     return res.status(401).json({ error: 'No authorization token' });
   }
-  
+
   // Validate token (simplified example)
   if (token !== 'Bearer secret-token') {
     return res.status(403).json({ error: 'Invalid token' });
   }
-  
+
   // Token is valid, continue
   next();
 };
@@ -144,15 +154,15 @@ module.exports = function(req, res, next) {
 
 ```javascript
 // timing-middleware.cjs
-module.exports = function(req, res, next) {
+module.exports = function (req, res, next) {
   const start = Date.now();
-  
+
   // Add listener for when response finishes
   res.on('finish', () => {
     const duration = Date.now() - start;
     console.log(`${req.method} ${req.url} - ${duration}ms`);
   });
-  
+
   next();
 };
 ```
@@ -176,7 +186,7 @@ API Faker supports both CommonJS and ES modules for middlewares:
 
 ```javascript
 // custom-middleware.mjs
-export default function(req, res, next) {
+export default function (req, res, next) {
   console.log(`${req.method} ${req.url}`);
   next();
 }
@@ -188,7 +198,7 @@ export default function(req, res, next) {
 // custom-middleware.ts
 import { Request, Response, NextFunction } from 'express';
 
-export default function(req: Request, res: Response, next: NextFunction) {
+export default function (req: Request, res: Response, next: NextFunction) {
   console.log(`${req.method} ${req.url}`);
   next();
 }
@@ -201,18 +211,18 @@ You can export an array of middleware functions:
 ```javascript
 // multiple-middlewares.cjs
 module.exports = [
-  function(req, res, next) {
+  function (req, res, next) {
     console.log('First middleware');
     next();
   },
-  function(req, res, next) {
+  function (req, res, next) {
     console.log('Second middleware');
     next();
   },
-  function(req, res, next) {
+  function (req, res, next) {
     res.setHeader('X-Custom-API', 'API Faker');
     next();
-  }
+  },
 ];
 ```
 
@@ -253,7 +263,7 @@ Create a complete custom API setup:
 **3. Create middleware (`logging.cjs`):**
 
 ```javascript
-module.exports = function(req, res, next) {
+module.exports = function (req, res, next) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.url}`);
   next();
@@ -343,6 +353,7 @@ CLI arguments take precedence over config file values. This allows you to set de
 **Example - Development vs Production:**
 
 **dev.json:**
+
 ```json
 {
   "port": 3000,
@@ -352,6 +363,7 @@ CLI arguments take precedence over config file values. This allows you to set de
 ```
 
 **prod.json:**
+
 ```json
 {
   "port": 8080,

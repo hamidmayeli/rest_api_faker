@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Database } from './database';
+import { logger } from './logger';
 import { parseQuery, applyQuery, generateLinkHeader } from './query';
 import { parseRelationships, applyRelationships, getForeignKey } from './relationships';
 
@@ -25,11 +26,11 @@ export interface RouterOptions {
 
 /**
  * Create API Faker router with CRUD operations
- * 
+ *
  * @param db - Database instance
  * @param options - Router configuration options
  * @returns Express router
- * 
+ *
  * @example
  * ```typescript
  * const db = new Database('db.json');
@@ -52,7 +53,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
     if (!contentType || !contentType.includes('application/json')) {
       // Express still parses but we should warn about missing header
       // In real json-server, this would still work but without actual data modification
-      console.warn('Warning: Content-Type should be application/json');
+      logger.warn('Content-Type should be application/json');
     }
     next();
   };
@@ -177,10 +178,15 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
 
     // Filter children by parent foreign key
     const foreignKey = getForeignKey(parent, foreignKeySuffix);
-    const filtered = childrenData.filter(child => {
+    const filtered = childrenData.filter((child) => {
       if (typeof child !== 'object' || child === null) return false;
       const childFk = (child as Record<string, unknown>)[foreignKey];
-      return childFk === parentId || (typeof childFk === 'number' || typeof childFk === 'string' ? String(childFk) === parentId : false);
+      return (
+        childFk === parentId ||
+        (typeof childFk === 'number' || typeof childFk === 'string'
+          ? String(childFk) === parentId
+          : false)
+      );
     });
 
     // Apply query parameters
@@ -194,42 +200,48 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
   /**
    * POST /:parent/:parentId/:children - Create nested child
    */
-  router.post('/:parent/:parentId/:children', validateContentType, async (req: Request, res: Response) => {
-    if (readOnly) {
-      return res.status(403).json({ error: 'Read-only mode enabled' });
+  router.post(
+    '/:parent/:parentId/:children',
+    validateContentType,
+    async (req: Request, res: Response) => {
+      if (readOnly) {
+        return res.status(403).json({ error: 'Read-only mode enabled' });
+      }
+
+      const parent = getParam(req, 'parent');
+      const parentId = getParam(req, 'parentId');
+      const children = getParam(req, 'children');
+      const data = req.body as Record<string, unknown>;
+
+      if (typeof data !== 'object') {
+        return res.status(400).json({ error: 'Request body must be a JSON object' });
+      }
+
+      // Verify parent exists
+      if (!db.isCollection(parent)) {
+        return res.status(404).json({ error: `Collection '${parent}' not found` });
+      }
+
+      const parentItem = db.getById(parent, parentId);
+      if (!parentItem) {
+        return res
+          .status(404)
+          .json({ error: `Parent item with id '${parentId}' not found in '${parent}'` });
+      }
+
+      // Auto-set foreign key
+      const foreignKey = getForeignKey(parent, foreignKeySuffix);
+      data[foreignKey] = parentId;
+
+      try {
+        const created = await db.create(children, data);
+        return res.status(201).json(created);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return res.status(400).json({ error: message });
+      }
     }
-
-    const parent = getParam(req, 'parent');
-    const parentId = getParam(req, 'parentId');
-    const children = getParam(req, 'children');
-    const data = req.body as Record<string, unknown>;
-
-    if (typeof data !== 'object') {
-      return res.status(400).json({ error: 'Request body must be a JSON object' });
-    }
-
-    // Verify parent exists
-    if (!db.isCollection(parent)) {
-      return res.status(404).json({ error: `Collection '${parent}' not found` });
-    }
-
-    const parentItem = db.getById(parent, parentId);
-    if (!parentItem) {
-      return res.status(404).json({ error: `Parent item with id '${parentId}' not found in '${parent}'` });
-    }
-
-    // Auto-set foreign key
-    const foreignKey = getForeignKey(parent, foreignKeySuffix);
-    data[foreignKey] = parentId;
-
-    try {
-      const created = await db.create(children, data);
-      return res.status(201).json(created);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(400).json({ error: message });
-    }
-  });
+  );
 
   /**
    * POST /:resource - Create new item
@@ -284,7 +296,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
 
     try {
       const updated = await db.update(resource, id, data);
-      
+
       if (!updated) {
         return res.status(404).json({ error: `Item with id '${id}' not found in '${resource}'` });
       }
@@ -318,7 +330,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
 
     try {
       const patched = await db.patch(resource, id, data);
-      
+
       if (!patched) {
         return res.status(404).json({ error: `Item with id '${id}' not found in '${resource}'` });
       }
@@ -347,7 +359,11 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
 
     // Only allow for singular resources (objects, not arrays)
     if (db.isCollection(resource)) {
-      return res.status(400).json({ error: `Cannot PUT to collection '${resource}'. Use POST or PUT /${resource}/:id` });
+      return res
+        .status(400)
+        .json({
+          error: `Cannot PUT to collection '${resource}'. Use POST or PUT /${resource}/:id`,
+        });
     }
 
     try {
@@ -376,11 +392,13 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
 
     // Only allow for singular resources
     if (db.isCollection(resource)) {
-      return res.status(400).json({ error: `Cannot PATCH collection '${resource}'. Use PATCH /${resource}/:id` });
+      return res
+        .status(400)
+        .json({ error: `Cannot PATCH collection '${resource}'. Use PATCH /${resource}/:id` });
     }
 
     const current = db.getCollection(resource) as Record<string, unknown> | undefined;
-    
+
     if (!current || typeof current !== 'object') {
       return res.status(404).json({ error: `Resource '${resource}' not found` });
     }

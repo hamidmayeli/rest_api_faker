@@ -6,6 +6,7 @@ import { createRouter, RouterOptions } from './router';
 import { createStaticMiddleware, createHomepageMiddleware, StaticOptions } from './static';
 import { loadMiddlewares } from './loader';
 import { loadRewriteRules, createRewriterMiddleware } from './rewriter';
+import { logger } from './logger';
 
 /**
  * Server configuration options
@@ -23,11 +24,11 @@ export interface ServerOptions extends RouterOptions, StaticOptions {
 
 /**
  * Create Express server with API Faker
- * 
+ *
  * @param db - Database instance
  * @param options - Server configuration options
  * @returns Express application
- * 
+ *
  * @example
  * ```typescript
  * const db = new Database('db.json');
@@ -35,7 +36,10 @@ export interface ServerOptions extends RouterOptions, StaticOptions {
  * const app = await createServer(db, { port: 3000 });
  * ```
  */
-export async function createServer(db: Database, options: Partial<ServerOptions> = {}): Promise<Express> {
+export async function createServer(
+  db: Database,
+  options: Partial<ServerOptions> = {}
+): Promise<Express> {
   const app = express();
 
   // CORS
@@ -64,8 +68,7 @@ export async function createServer(db: Database, options: Partial<ServerOptions>
   // Request logger (unless quiet)
   if (!options.quiet) {
     app.use((req, _res, next) => {
-      const timestamp = new Date().toISOString();
-      console.log(`[${timestamp}] ${req.method} ${req.url}`);
+      logger.request(req.method, req.url);
       next();
     });
   }
@@ -78,10 +81,12 @@ export async function createServer(db: Database, options: Partial<ServerOptions>
         app.use(middleware);
       }
       if (!options.quiet) {
-        console.log(`✓ Loaded custom middlewares from ${options.middlewares}`);
+        logger.success(`Loaded custom middlewares from ${options.middlewares}`);
       }
     } catch (error) {
-      console.error(`Failed to load middlewares: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Failed to load middlewares: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     }
   }
@@ -99,10 +104,12 @@ export async function createServer(db: Database, options: Partial<ServerOptions>
       const rewriter = createRewriterMiddleware(rules);
       app.use(rewriter);
       if (!options.quiet) {
-        console.log(`✓ Loaded route rewrite rules from ${options.routes}`);
+        logger.success(`Loaded route rewrite rules from ${options.routes}`);
       }
     } catch (error) {
-      console.error(`Failed to load routes: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Failed to load routes: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     }
   }
@@ -126,26 +133,29 @@ export async function createServer(db: Database, options: Partial<ServerOptions>
 
 /**
  * Start the server
- * 
+ *
  * @param app - Express application
  * @param options - Server options (port, host)
  * @returns Server instance
  */
-export function startServer(app: Express, options: Pick<ServerOptions, 'port' | 'host' | 'quiet'> = {}): ReturnType<Express['listen']> {
+export function startServer(
+  app: Express,
+  options: Pick<ServerOptions, 'port' | 'host' | 'quiet'> = {}
+): ReturnType<Express['listen']> {
   const port = options.port || 3000;
   const host = options.host || 'localhost';
 
   return app.listen(port, host, () => {
     if (!options.quiet) {
-      console.log();
-      console.log(`🚀 API Faker is running!`);
-      console.log();
-      console.log(`  Resources:`);
-      console.log(`  http://${host}:${String(port)}/`);
-      console.log();
-      console.log(`  Home:`);
-      console.log(`  http://${host}:${String(port)}`);
-      console.log();
+      logger.banner([
+        '🚀 API Faker is running!',
+        '',
+        '  Resources:',
+        `  http://${host}:${String(port)}/`,
+        '',
+        '  Home:',
+        `  http://${host}:${String(port)}`,
+      ]);
     }
   });
 }

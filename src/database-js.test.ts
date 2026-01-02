@@ -79,13 +79,17 @@ export default function() {
 
     it('should generate different data on each init', async () => {
       const db = new Database(testMjsPath);
-      
+
       await db.init();
-      const firstGenerated = (db.getCollection('generated') as { id: number; value: number }[])[0] as { id: number; value: number };
+      const firstGenerated = (
+        db.getCollection('generated') as { id: number; value: number }[]
+      )[0] as { id: number; value: number };
       const firstValue = firstGenerated.value;
 
       await db.init();
-      const secondGenerated = (db.getCollection('generated') as { id: number; value: number }[])[0] as { id: number; value: number };
+      const secondGenerated = (
+        db.getCollection('generated') as { id: number; value: number }[]
+      )[0] as { id: number; value: number };
       const secondValue = secondGenerated.value;
 
       // Values should be different since Math.random() is called each time
@@ -96,7 +100,7 @@ export default function() {
   describe('Error Handling', () => {
     it('should throw error for non-existent JS file', async () => {
       const db = new Database('nonexistent.js');
-      
+
       await expect(db.init()).rejects.toThrow('Database file not found');
     });
 
@@ -105,9 +109,11 @@ export default function() {
       writeFileSync(invalidPath, 'export default "invalid";');
 
       const db = new Database(invalidPath);
-      
+
       try {
-        await expect(db.init()).rejects.toThrow('JavaScript module must export an object or function');
+        await expect(db.init()).rejects.toThrow(
+          'JavaScript module must export an object or function'
+        );
       } finally {
         if (existsSync(invalidPath)) unlinkSync(invalidPath);
       }
@@ -118,7 +124,7 @@ export default function() {
       writeFileSync(invalidPath, 'export default function() { return "invalid"; }');
 
       const db = new Database(invalidPath);
-      
+
       try {
         await expect(db.init()).rejects.toThrow('JavaScript module function must return an object');
       } finally {

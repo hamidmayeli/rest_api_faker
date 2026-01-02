@@ -22,7 +22,7 @@ describe('loader', () => {
       const filePath = join(testDir, 'test.cjs');
       writeFileSync(filePath, 'module.exports = { value: 42 };');
 
-      const module = await loadModule(filePath) as { default: { value: number }; value: number };
+      const module = (await loadModule(filePath)) as { default: { value: number }; value: number };
       // Node.js wraps CommonJS exports with both default and named exports
       expect(module.default).toEqual({ value: 42 });
       expect(module.value).toBe(42);
@@ -32,13 +32,13 @@ describe('loader', () => {
       const filePath = join(testDir, 'test.mjs');
       writeFileSync(filePath, 'export default { value: 42 };');
 
-      const module = await loadModule(filePath) as { default: { value: number } };
+      const module = (await loadModule(filePath)) as { default: { value: number } };
       expect(module.default).toEqual({ value: 42 });
     });
 
     it('should throw error for non-existent file', async () => {
       const filePath = join(testDir, 'nonexistent.js');
-      
+
       await expect(loadModule(filePath)).rejects.toThrow(/Failed to load module/);
     });
 
@@ -53,12 +53,15 @@ describe('loader', () => {
   describe('loadMiddlewares', () => {
     it('should load single middleware from CommonJS module', async () => {
       const filePath = join(testDir, 'middleware.cjs');
-      writeFileSync(filePath, `
+      writeFileSync(
+        filePath,
+        `
         module.exports = function(req, res, next) {
           req.customProp = 'test';
           next();
         };
-      `);
+      `
+      );
 
       const middlewares = await loadMiddlewares(filePath);
       expect(middlewares).toHaveLength(1);
@@ -67,12 +70,15 @@ describe('loader', () => {
 
     it('should load middleware from ES module default export', async () => {
       const filePath = join(testDir, 'middleware.mjs');
-      writeFileSync(filePath, `
+      writeFileSync(
+        filePath,
+        `
         export default function(req, res, next) {
           req.customProp = 'test';
           next();
         };
-      `);
+      `
+      );
 
       const middlewares = await loadMiddlewares(filePath);
       expect(middlewares).toHaveLength(1);

@@ -1,13 +1,13 @@
 /**
  * API Faker - Main entry point for programmatic usage
- * 
+ *
  * @example
  * ```typescript
  * import { create, router, defaults } from 'api-faker';
- * 
+ *
  * const server = create();
  * const apiRouter = router('db.json');
- * 
+ *
  * server.use(defaults());
  * server.use(apiRouter);
  * server.listen(3000);

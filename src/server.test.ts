@@ -21,7 +21,7 @@ describe('Server Special Endpoints', () => {
       posts: [
         { id: 1, userId: 1, title: 'First Post', body: 'Hello World' },
         { id: 2, userId: 1, title: 'Second Post', body: 'Another post' },
-        { id: 3, userId: 2, title: 'Bob\'s Post', body: 'Bob\'s content' },
+        { id: 3, userId: 2, title: "Bob's Post", body: "Bob's content" },
       ],
     };
 
@@ -44,7 +44,7 @@ describe('Server Special Endpoints', () => {
   describe('GET /db', () => {
     it('should return the full database', async () => {
       const response = await request(app).get('/db');
-      
+
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('users');
       expect(response.body).toHaveProperty('posts');
@@ -54,13 +54,13 @@ describe('Server Special Endpoints', () => {
 
     it('should return JSON content type', async () => {
       const response = await request(app).get('/db');
-      
+
       expect(response.headers['content-type']).toMatch(/json/);
     });
 
     it('should include all collections', async () => {
       const response = await request(app).get('/db');
-      
+
       expect(Object.keys(response.body as Record<string, unknown>)).toContain('users');
       expect(Object.keys(response.body as Record<string, unknown>)).toContain('posts');
     });
@@ -69,7 +69,7 @@ describe('Server Special Endpoints', () => {
   describe('GET / (Homepage)', () => {
     it('should return HTML homepage', async () => {
       const response = await request(app).get('/');
-      
+
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toMatch(/html/);
       expect(response.text).toContain('API Faker');
@@ -77,13 +77,13 @@ describe('Server Special Endpoints', () => {
 
     it('should include link to /db endpoint', async () => {
       const response = await request(app).get('/');
-      
+
       expect(response.text).toContain('/db');
     });
 
     it('should include usage tips', async () => {
       const response = await request(app).get('/');
-      
+
       expect(response.text).toContain('query parameters');
     });
   });
@@ -91,21 +91,21 @@ describe('Server Special Endpoints', () => {
   describe('Static File Integration', () => {
     it('should still handle 404 for non-existent routes', async () => {
       const response = await request(app).get('/nonexistent-route');
-      
+
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error');
     });
 
     it('should not interfere with API routes', async () => {
       const response = await request(app).get('/users');
-      
+
       expect(response.status).toBe(200);
       expect(response.body).toHaveLength(2);
     });
 
     it('should not interfere with nested routes', async () => {
       const response = await request(app).get('/users/1');
-      
+
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({ id: 1, name: 'Alice' });
     });
@@ -115,7 +115,7 @@ describe('Server Special Endpoints', () => {
     it('should support disabled static serving', async () => {
       const appNoStatic = await createServer(db, { enabled: false, quiet: true });
       const response = await request(appNoStatic).get('/');
-      
+
       expect(response.status).toBe(200);
       expect(response.text).toContain('API Faker');
     });
@@ -123,7 +123,7 @@ describe('Server Special Endpoints', () => {
     it('should support custom static directory', async () => {
       const appCustom = await createServer(db, { directory: './custom', quiet: true });
       const response = await request(appCustom).get('/users');
-      
+
       // Should still work with custom directory
       expect(response.status).toBe(200);
     });

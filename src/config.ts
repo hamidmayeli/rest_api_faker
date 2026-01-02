@@ -2,6 +2,59 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /**
+ * Find the closest matching string using Levenshtein distance
+ *
+ * @param input - Input string to match
+ * @param candidates - Array of candidate strings
+ * @returns Closest match or null if no good match found
+ */
+function findClosestMatch(input: string, candidates: string[]): string | null {
+  /* eslint-disable @typescript-eslint/no-non-null-assertion */
+  const levenshtein = (a: string, b: string): number => {
+    const matrix: number[][] = [];
+
+    for (let i = 0; i <= b.length; i++) {
+      matrix[i] = [i];
+    }
+
+    for (let j = 0; j <= a.length; j++) {
+      matrix[0]![j] = j;
+    }
+
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i]![j] = matrix[i - 1]![j - 1]!;
+        } else {
+          matrix[i]![j] = Math.min(
+            matrix[i - 1]![j - 1]! + 1,
+            matrix[i]![j - 1]! + 1,
+            matrix[i - 1]![j]! + 1
+          );
+        }
+      }
+    }
+
+    return matrix[b.length]![a.length]!;
+  };
+  /* eslint-enable @typescript-eslint/no-non-null-assertion */
+
+  let closestMatch: string | null = null;
+  let minDistance = Infinity;
+
+  for (const candidate of candidates) {
+    const distance = levenshtein(input.toLowerCase(), candidate.toLowerCase());
+    if (distance < minDistance && distance <= 3) {
+      // Only suggest if distance is 3 or less
+      minDistance = distance;
+      closestMatch = candidate;
+    }
+  }
+
+  return closestMatch;
+}
+
+/**
  * Configuration options that can be specified in config file or CLI
  */
 export interface Config {
@@ -23,11 +76,11 @@ export interface Config {
 
 /**
  * Load configuration from a JSON file
- * 
+ *
  * @param configPath - Path to the configuration file
  * @returns Configuration object or null if file doesn't exist
  * @throws Error if file exists but is invalid JSON or contains invalid options
- * 
+ *
  * @example
  * ```typescript
  * const config = loadConfig('api-faker.json');
@@ -61,13 +114,15 @@ export function loadConfig(configPath: string): Config | null {
     if (error instanceof Error && error.message.includes('Config file must contain')) {
       throw error;
     }
-    throw new Error(`Failed to load config from '${configPath}': ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Failed to load config from '${configPath}': ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
 /**
  * Validate configuration object
- * 
+ *
  * @param config - Configuration object to validate
  * @throws Error if configuration contains invalid options
  */
@@ -92,12 +147,19 @@ function validateConfig(config: Record<string, unknown>): void {
   // Check for unknown options
   for (const key of Object.keys(config)) {
     if (!validOptions.has(key)) {
-      throw new Error(`Unknown config option: '${key}'`);
+      const suggestion = findClosestMatch(key, Array.from(validOptions));
+      const didYouMean = suggestion ? ` Did you mean '${suggestion}'?` : '';
+      throw new Error(
+        `Unknown config option: '${key}'.${didYouMean} Valid options are: ${Array.from(validOptions).join(', ')}`
+      );
     }
   }
 
   // Validate types
-  if ('port' in config && (typeof config.port !== 'number' || config.port < 0 || config.port > 65535)) {
+  if (
+    'port' in config &&
+    (typeof config.port !== 'number' || config.port < 0 || config.port > 65535)
+  ) {
     throw new Error("Config option 'port' must be a number between 0 and 65535");
   }
 
@@ -157,11 +219,11 @@ function validateConfig(config: Record<string, unknown>): void {
 /**
  * Merge CLI arguments with config file
  * CLI arguments take precedence over config file values
- * 
+ *
  * @param cliConfig - Configuration from CLI arguments
  * @param fileConfig - Configuration from config file
  * @returns Merged configuration
- * 
+ *
  * @example
  * ```typescript
  * const fileConfig = loadConfig('api-faker.json');

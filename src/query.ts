@@ -21,10 +21,10 @@ export interface QueryOptions {
 
 /**
  * Parse query parameters from request
- * 
+ *
  * @param req - Express request object
  * @returns Parsed query options
- * 
+ *
  * @example
  * parseQuery(req) // { filters: { title: 'value' }, sort: ['id'], order: ['asc'] }
  */
@@ -42,10 +42,13 @@ export function parseQuery(req: Request): QueryOptions {
 
   for (const [key, value] of Object.entries(query)) {
     // Skip non-string and non-array values
-    const stringValue = typeof value === 'string' ? value : 
-                       Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' ? value[0] : 
-                       null;
-    
+    const stringValue =
+      typeof value === 'string'
+        ? value
+        : Array.isArray(value) && value.length > 0 && typeof value[0] === 'string'
+          ? value[0]
+          : null;
+
     if (stringValue === null && !Array.isArray(value)) {
       continue;
     }
@@ -119,7 +122,7 @@ export function parseQuery(req: Request): QueryOptions {
     if (operatorMatch && stringValue) {
       const field = operatorMatch[1];
       const operator = operatorMatch[2];
-      
+
       if (field && operator) {
         if (!operators[field]) {
           operators[field] = {};
@@ -158,11 +161,11 @@ export function parseQuery(req: Request): QueryOptions {
 
 /**
  * Get nested property value from object
- * 
+ *
  * @param obj - Object to get property from
  * @param path - Dot-separated property path
  * @returns Property value or undefined
- * 
+ *
  * @example
  * getNestedValue({ user: { name: 'John' } }, 'user.name') // 'John'
  */
@@ -186,11 +189,11 @@ function getNestedValue(obj: unknown, path: string): unknown {
 
 /**
  * Check if item matches filter criteria
- * 
+ *
  * @param item - Item to check
  * @param filters - Filter criteria
  * @returns True if item matches all filters
- * 
+ *
  * @example
  * matchesFilters({ title: 'test' }, { title: 'test' }) // true
  */
@@ -204,7 +207,7 @@ function matchesFilters(item: unknown, filters: Record<string, string | string[]
 
     if (Array.isArray(filterValue)) {
       // Multiple values - item must match at least one
-      const matched = filterValue.some(val => String(itemValue) === val);
+      const matched = filterValue.some((val) => String(itemValue) === val);
       if (!matched) {
         return false;
       }
@@ -221,15 +224,18 @@ function matchesFilters(item: unknown, filters: Record<string, string | string[]
 
 /**
  * Check if item matches operator criteria
- * 
+ *
  * @param item - Item to check
  * @param operators - Operator criteria
  * @returns True if item matches all operators
- * 
+ *
  * @example
  * matchesOperators({ age: 25 }, { age: { _gte: '18' } }) // true
  */
-function matchesOperators(item: unknown, operators: Record<string, Record<string, string>>): boolean {
+function matchesOperators(
+  item: unknown,
+  operators: Record<string, Record<string, string>>
+): boolean {
   if (typeof item !== 'object' || item === null) {
     return false;
   }
@@ -265,11 +271,11 @@ function matchesOperators(item: unknown, operators: Record<string, Record<string
 
 /**
  * Check if item matches full-text search
- * 
+ *
  * @param item - Item to check
  * @param searchText - Text to search for
  * @returns True if any string property contains search text
- * 
+ *
  * @example
  * matchesSearch({ title: 'Hello World' }, 'world') // true
  */
@@ -297,34 +303,31 @@ function matchesSearch(item: unknown, searchText: string): boolean {
 
 /**
  * Apply filtering, sorting, pagination, etc. to data array
- * 
+ *
  * @param data - Array of items to process
  * @param options - Query options
  * @returns Processed array and total count (before pagination)
- * 
+ *
  * @example
  * applyQuery([{ id: 1 }, { id: 2 }], { limit: 1 }) // { data: [{ id: 1 }], total: 2 }
  */
-export function applyQuery<T>(
-  data: T[],
-  options: QueryOptions
-): { data: T[]; total: number } {
+export function applyQuery<T>(data: T[], options: QueryOptions): { data: T[]; total: number } {
   let result = [...data];
 
   // Apply full-text search
   if (options.q) {
     const searchText = options.q;
-    result = result.filter(item => matchesSearch(item, searchText));
+    result = result.filter((item) => matchesSearch(item, searchText));
   }
 
   // Apply filters
   if (Object.keys(options.filters).length > 0) {
-    result = result.filter(item => matchesFilters(item, options.filters));
+    result = result.filter((item) => matchesFilters(item, options.filters));
   }
 
   // Apply operators
   if (Object.keys(options.operators).length > 0) {
-    result = result.filter(item => matchesOperators(item, options.operators));
+    result = result.filter((item) => matchesOperators(item, options.operators));
   }
 
   // Store total before pagination
@@ -339,7 +342,7 @@ export function applyQuery<T>(
       for (let i = 0; i < sortFields.length; i++) {
         const field = sortFields[i];
         if (!field) continue;
-        
+
         const order = sortOrders[i] === 'desc' ? -1 : 1;
 
         const aVal = getNestedValue(a, field);
@@ -380,13 +383,13 @@ export function applyQuery<T>(
 
 /**
  * Generate Link header for pagination
- * 
+ *
  * @param req - Express request object
  * @param page - Current page
  * @param limit - Items per page
  * @param total - Total number of items
  * @returns Link header value
- * 
+ *
  * @example
  * generateLinkHeader(req, 2, 10, 100) // '<...>; rel="first", <...>; rel="prev", ...'
  */

@@ -6,27 +6,25 @@ import type { Database } from './database';
 
 /**
  * Detect foreign key relationships based on naming conventions
- * 
+ *
  * @param collectionName - Name of the collection (e.g., 'posts')
  * @param foreignKeySuffix - Suffix for foreign keys (default: 'Id')
  * @returns Possible foreign key name (e.g., 'postId')
- * 
+ *
  * @example
  * getForeignKey('posts', 'Id') // 'postId'
  * getForeignKey('users', '_id') // 'user_id'
  */
 export function getForeignKey(collectionName: string, foreignKeySuffix: string): string {
   // Remove trailing 's' for singular form
-  const singular = collectionName.endsWith('s') 
-    ? collectionName.slice(0, -1) 
-    : collectionName;
-  
+  const singular = collectionName.endsWith('s') ? collectionName.slice(0, -1) : collectionName;
+
   return `${singular}${foreignKeySuffix}`;
 }
 
 /**
  * Embed child resources into parent items
- * 
+ *
  * @param items - Parent items to embed children into
  * @param parentCollection - Name of parent collection
  * @param childCollection - Name of child collection
@@ -34,7 +32,7 @@ export function getForeignKey(collectionName: string, foreignKeySuffix: string):
  * @param idField - ID field name (default: 'id')
  * @param foreignKeySuffix - Foreign key suffix (default: 'Id')
  * @returns Items with embedded children
- * 
+ *
  * @example
  * embedChildren([{ id: 1 }], 'posts', 'comments', db)
  * // [{ id: 1, comments: [{ id: 1, postId: 1, body: '...' }] }]
@@ -48,7 +46,7 @@ export function embedChildren<T extends Record<string, unknown>>(
   foreignKeySuffix: string
 ): T[] {
   const children = db.getCollection(childCollection);
-  
+
   // If children collection doesn't exist or isn't an array, return items unchanged
   if (!Array.isArray(children)) {
     return items;
@@ -56,9 +54,9 @@ export function embedChildren<T extends Record<string, unknown>>(
 
   const foreignKey = getForeignKey(parentCollection, foreignKeySuffix);
 
-  return items.map(item => {
+  return items.map((item) => {
     // Find all children that reference this parent
-    const matchingChildren = children.filter(child => {
+    const matchingChildren = children.filter((child) => {
       if (typeof child !== 'object' || child === null) return false;
       const childFk = (child as Record<string, unknown>)[foreignKey];
       const parentId = item[idField];
@@ -74,7 +72,7 @@ export function embedChildren<T extends Record<string, unknown>>(
 
 /**
  * Expand parent resource into child items
- * 
+ *
  * @param items - Child items to expand parent into
  * @param childCollection - Name of child collection
  * @param parentCollection - Name of parent collection
@@ -82,7 +80,7 @@ export function embedChildren<T extends Record<string, unknown>>(
  * @param idField - ID field name (default: 'id')
  * @param foreignKeySuffix - Foreign key suffix (default: 'Id')
  * @returns Items with expanded parent
- * 
+ *
  * @example
  * expandParent([{ id: 1, postId: 1 }], 'comments', 'posts', db)
  * // [{ id: 1, postId: 1, post: { id: 1, title: '...' } }]
@@ -96,7 +94,7 @@ export function expandParent<T extends Record<string, unknown>>(
   foreignKeySuffix: string
 ): T[] {
   const parents = db.getCollection(parentCollection);
-  
+
   // If parent collection doesn't exist or isn't an array, return items unchanged
   if (!Array.isArray(parents)) {
     return items;
@@ -104,15 +102,15 @@ export function expandParent<T extends Record<string, unknown>>(
 
   const foreignKey = getForeignKey(parentCollection, foreignKeySuffix);
 
-  return items.map(item => {
+  return items.map((item) => {
     const foreignKeyValue: unknown = item[foreignKey];
-    
+
     if (foreignKeyValue === undefined) {
       return item;
     }
 
     // Find the parent that matches this foreign key
-    const parent: unknown = parents.find(p => {
+    const parent: unknown = parents.find((p) => {
       if (typeof p !== 'object' || p === null) return false;
       const parentRecord = p as Record<string, unknown>;
       const parentId: unknown = parentRecord[idField];
@@ -141,7 +139,7 @@ export function expandParent<T extends Record<string, unknown>>(
 
 /**
  * Apply relationship parameters (_embed, _expand) to query results
- * 
+ *
  * @param data - Query results
  * @param resource - Resource name
  * @param embed - Collections to embed
@@ -150,7 +148,7 @@ export function expandParent<T extends Record<string, unknown>>(
  * @param idField - ID field name
  * @param foreignKeySuffix - Foreign key suffix
  * @returns Data with relationships applied
- * 
+ *
  * @example
  * applyRelationships(posts, 'posts', ['comments'], [], db)
  */
@@ -180,10 +178,10 @@ export function applyRelationships<T extends Record<string, unknown>>(
 
 /**
  * Parse relationship parameters from query
- * 
+ *
  * @param query - Express query object
  * @returns Arrays of collections to embed and expand
- * 
+ *
  * @example
  * parseRelationships({ _embed: 'comments' }) // { embed: ['comments'], expand: [] }
  * parseRelationships({ _embed: ['comments', 'likes'] }) // { embed: ['comments', 'likes'], expand: [] }
