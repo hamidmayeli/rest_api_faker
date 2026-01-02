@@ -9,7 +9,7 @@ Created with ❤️ for front-end developers who need a quick back-end for proto
 [![Tests](https://img.shields.io/badge/tests-223%20passing-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
-[![npm version](https://img.shields.io/npm/v/api-faker.svg)](https://www.npmjs.com/package/api-faker)
+[![npm version](https://img.shields.io/npm/v/rest_api_faker.svg)](https://www.npmjs.com/package/rest_api_faker)
 
 ## Table of Contents
 
@@ -48,13 +48,13 @@ Created with ❤️ for front-end developers who need a quick back-end for proto
 
 ```bash
 # NPM
-npm install -g api-faker
+npm install -g rest_api_faker
 
 # Yarn
-yarn global add api-faker
+yarn global add rest_api_faker
 
 # PNPM
-pnpm add -g api-faker
+pnpm add -g rest_api_faker
 ```
 
 ## Getting Started

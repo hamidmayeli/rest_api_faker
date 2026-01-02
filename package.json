@@ -1,5 +1,5 @@
 {
-  "name": "api-faker",
+  "name": "rest_api_faker",
   "version": "0.0.0",
   "description": "Get a full fake REST API with zero coding in less than 30 seconds",
   "main": "./dist/index.js",

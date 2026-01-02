@@ -262,6 +262,35 @@ Include:
 - Use cases
 - Examples
 
+## Publishing (Maintainers Only)
+
+### NPM Publishing
+
+The package is published as `@hamid.mayeli/api-faker` (scoped package) to avoid naming conflicts.
+
+To publish a new version:
+
+1. Update version in `package.json`:
+   ```bash
+   pnpm version patch  # or minor, major
+   ```
+
+2. Push the tag to trigger release workflow:
+   ```bash
+   git push --follow-tags
+   ```
+
+3. The GitHub Action will:
+   - Run all tests and checks
+   - Create a GitHub release
+   - Publish to npm (if `NPM_TOKEN` secret is configured)
+
+### Setting up NPM_TOKEN
+
+1. Create an npm access token at [npmjs.com](https://www.npmjs.com/settings/tokens)
+2. Add it as a secret named `NPM_TOKEN` in GitHub repository settings
+3. The release workflow will automatically publish to npm
+
 ## Questions?
 
 If you have questions, feel free to:
