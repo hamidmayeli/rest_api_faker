@@ -1,0 +1,9 @@
+{
+  "/api/*": "/$1",
+  "/:resource/:id/show": "/:resource/:id",
+  "/posts/:category": "/posts?category=:category",
+  "/articles?id=:id": "/posts/:id",
+  "/me": "/profile",
+  "/news/top": "/news?_sort=date&_order=asc&_limit=10",
+  "/api/posts/:postId/comments/:commentId": "/comments/:commentId"
+}

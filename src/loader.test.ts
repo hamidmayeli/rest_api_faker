@@ -2,8 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { Router } from 'express';
-import { loadModule, loadRoutes, loadMiddlewares } from './loader';
+import { loadModule, loadMiddlewares } from './loader';
 
 describe('loader', () => {
   const testDir = join(tmpdir(), 'api-faker-loader-test');
@@ -48,39 +47,6 @@ describe('loader', () => {
       writeFileSync(filePath, 'this is not valid javascript {{{');
 
       await expect(loadModule(filePath)).rejects.toThrow(/Failed to load module/);
-    });
-  });
-
-  describe('loadRoutes', () => {
-    it('should load routes from CommonJS module with router modification', async () => {
-      const filePath = join(testDir, 'routes.cjs');
-      writeFileSync(filePath, `
-        module.exports = function(router) {
-          router.get('/custom', (req, res) => {
-            res.json({ message: 'custom route' });
-          });
-        };
-      `);
-
-      const router = await loadRoutes(filePath);
-      expect(router).toBeInstanceOf(Router);
-    });
-
-    it('should load routes from ES module that returns router', async () => {
-      const filePath = join(testDir, 'routes.mjs');
-      writeFileSync(filePath, `
-        import { Router } from 'express';
-        export default function() {
-          const router = Router();
-          router.get('/custom', (req, res) => {
-            res.json({ message: 'custom route' });
-          });
-          return router;
-        };
-      `);
-
-      const router = await loadRoutes(filePath);
-      expect(router).toBeInstanceOf(Router);
     });
   });
 

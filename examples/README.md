@@ -4,58 +4,154 @@ This directory contains example files demonstrating how to extend API Faker with
 
 ## Custom Routes
 
-### File: `custom-routes.cjs`
+Custom routes allow you to rewrite URLs before they reach the API router. This is useful for:
+- Creating URL aliases
+- Supporting legacy API paths
+- Mapping complex URLs to simpler ones
+- Adding custom query parameters
 
-Example of creating custom routes that will be added to your API Faker server.
+### routes.json
 
-**Usage:**
-```bash
-api-faker db.json --routes examples/custom-routes.cjs
+The `routes.json` file contains URL rewrite rules as key-value pairs. Routes are tested in order, and only the first matching rule is applied.
+
+```json
+{
+  "/api/*": "/$1",
+  "/:resource/:id/show": "/:resource/:id",
+  "/posts/:category": "/posts?category=:category",
+  "/articles?id=:id": "/posts/:id",
+  "/me": "/profile",
+  "/news/top": "/news?_sort=date&_order=asc&_limit=10",
+  "/api/posts/:postId/comments/:commentId": "/comments/:commentId"
+}
 ```
 
-**Routes provided:**
-- `GET /custom` - Returns a custom message
-- `POST /custom` - Creates a custom resource
+**Pattern Types:**
 
-**Code pattern:**
-```javascript
-module.exports = function(router) {
-  router.get('/custom', (req, res) => {
-    res.json({ message: 'This is a custom route!' });
-  });
+1. **Wildcard (`*`)**: Captures everything and references it as `$1`
+   ```json
+   {
+     "/api/*": "/$1"
+   }
+   ```
+   - `/api/posts` → `/posts`
+   - `/api/posts/1` → `/posts/1`
 
-  router.post('/custom', (req, res) => {
-    res.status(201).json({ 
-      message: 'Created custom resource', 
-      data: req.body 
-    });
-  });
-};
+2. **Named Parameters (`:param`)**: Captures a path segment
+   ```json
+   {
+     "/:resource/:id/show": "/:resource/:id"
+   }
+   ```
+   - `/posts/1/show` → `/posts/1`
+   - `/users/42/show` → `/users/42`
+
+3. **Query String Mapping**: Add query parameters to the rewritten URL
+   ```json
+   {
+     "/posts/:category": "/posts?category=:category"
+   }
+   ```
+   - `/posts/javascript` → `/posts?category=javascript`
+
+4. **Exact Match**: Simple one-to-one mapping
+   ```json
+   {
+     "/me": "/profile"
+   }
+   ```
+   - `/me` → `/profile`
+
+**Usage:**
+
+```bash
+api-faker db.json --routes examples/routes.json
+```
+
+**Testing Examples:**
+
+```bash
+# Start with routes
+api-faker db.json --routes examples/routes.json --port 3000
+
+# Test the routes (assuming you have posts, news, profile in db.json)
+curl http://localhost:3000/api/posts              # → /posts
+curl http://localhost:3000/posts/1/show           # → /posts/1
+curl http://localhost:3000/posts/javascript       # → /posts?category=javascript
+curl http://localhost:3000/me                     # → /profile
+curl http://localhost:3000/news/top               # → /news?_sort=date&_order=asc&_limit=10
 ```
 
 ## Custom Middleware
 
-### File: `custom-middleware.cjs`
+Custom middleware allows you to add functionality that runs on every request. This is useful for:
+- Adding custom headers
+- Logging requests
+- Authentication/authorization
+- Request transformation
 
-Example of creating custom middleware that will be applied to all requests.
+### custom-middleware.cjs
 
-**Usage:**
-```bash
-api-faker db.json --middlewares examples/custom-middleware.cjs
-```
+This example shows how to add custom middleware using CommonJS format:
 
-**What it does:**
-- Adds a custom header `X-Custom-API: API Faker` to all responses
-- Logs custom information for each request
-
-**Code pattern:**
 ```javascript
 module.exports = function(req, res, next) {
-  // Add a custom header
+  // Add a custom header to all responses
   res.setHeader('X-Custom-API', 'API Faker');
   
   // Log custom information
   console.log(`[Custom Middleware] ${req.method} ${req.url}`);
+  
+  // Continue to next middleware
+  next();
+};
+```
+
+**Usage:**
+
+```bash
+api-faker db.json --middlewares examples/custom-middleware.cjs
+```
+
+**Middleware can:**
+- Modify request objects
+- Modify response objects
+- End the request-response cycle
+- Call the next middleware in the stack
+
+**Example - Authentication Middleware:**
+
+```javascript
+// auth-middleware.cjs
+module.exports = function(req, res, next) {
+  const token = req.headers.authorization;
+  
+  if (!token) {
+    return res.status(401).json({ error: 'No authorization token' });
+  }
+  
+  // Validate token (simplified example)
+  if (token !== 'Bearer secret-token') {
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+  
+  // Token is valid, continue
+  next();
+};
+```
+
+**Example - Request Timing Middleware:**
+
+```javascript
+// timing-middleware.cjs
+module.exports = function(req, res, next) {
+  const start = Date.now();
+  
+  // Add listener for when response finishes
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`${req.method} ${req.url} - ${duration}ms`);
+  });
   
   next();
 };
@@ -66,54 +162,128 @@ module.exports = function(req, res, next) {
 You can use both custom routes and middlewares together:
 
 ```bash
-api-faker db.json --routes examples/custom-routes.cjs --middlewares examples/custom-middleware.cjs
+api-faker db.json \\
+  --routes examples/routes.json \\
+  --middlewares examples/custom-middleware.cjs \\
+  --port 3000
 ```
 
 ## ES Module Support
 
-API Faker also supports ES modules (`.mjs`) and TypeScript (`.ts`) files:
+API Faker supports both CommonJS and ES modules for middlewares:
 
-```javascript
-// custom-routes.mjs
-import { Router } from 'express';
-
-export default function() {
-  const router = Router();
-  router.get('/custom', (req, res) => {
-    res.json({ message: 'ES Module route!' });
-  });
-  return router;
-}
-```
+**ES Module (`.mjs`):**
 
 ```javascript
 // custom-middleware.mjs
 export default function(req, res, next) {
-  console.log('ES Module middleware');
+  console.log(`${req.method} ${req.url}`);
+  next();
+}
+```
+
+**TypeScript (`.ts`):**
+
+```typescript
+// custom-middleware.ts
+import { Request, Response, NextFunction } from 'express';
+
+export default function(req: Request, res: Response, next: NextFunction) {
+  console.log(`${req.method} ${req.url}`);
   next();
 }
 ```
 
 ## Array of Middlewares
 
-You can export an array of middlewares to apply multiple middlewares from one file:
+You can export an array of middleware functions:
 
 ```javascript
+// multiple-middlewares.cjs
 module.exports = [
-  function firstMiddleware(req, res, next) {
+  function(req, res, next) {
     console.log('First middleware');
     next();
   },
-  function secondMiddleware(req, res, next) {
+  function(req, res, next) {
     console.log('Second middleware');
+    next();
+  },
+  function(req, res, next) {
+    res.setHeader('X-Custom-API', 'API Faker');
     next();
   }
 ];
 ```
 
+## Full Example
+
+Create a complete custom API setup:
+
+**1. Create a database (`db.json`):**
+
+```json
+{
+  "posts": [
+    { "id": 1, "title": "Hello World", "category": "javascript" },
+    { "id": 2, "title": "TypeScript Basics", "category": "typescript" }
+  ],
+  "news": [
+    { "id": 1, "title": "Breaking News", "date": "2026-01-01" },
+    { "id": 2, "title": "Old News", "date": "2025-12-01" }
+  ],
+  "profile": {
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+}
+```
+
+**2. Create route mappings (`routes.json`):**
+
+```json
+{
+  "/api/*": "/$1",
+  "/me": "/profile",
+  "/news/top": "/news?_sort=date&_order=desc&_limit=1",
+  "/posts/:category": "/posts?category=:category"
+}
+```
+
+**3. Create middleware (`logging.cjs`):**
+
+```javascript
+module.exports = function(req, res, next) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.url}`);
+  next();
+};
+```
+
+**4. Start the server:**
+
+```bash
+api-faker db.json \\
+  --routes routes.json \\
+  --middlewares logging.cjs \\
+  --port 3000
+```
+
+**5. Test the API:**
+
+```bash
+# Test URL rewriting
+curl http://localhost:3000/api/posts           # → /posts
+curl http://localhost:3000/me                  # → /profile
+curl http://localhost:3000/news/top            # → /news?_sort=date&_order=desc&_limit=1
+curl http://localhost:3000/posts/javascript    # → /posts?category=javascript
+
+# All requests will be logged by the custom middleware
+```
+
 ## Notes
 
-- Routes are added before the default API Faker routes
-- Middlewares are applied after built-in middlewares (CORS, compression) but before routes
-- Custom routes can override default behavior if they match the same paths
-- All Express.js middleware and routing features are supported
+- **Route Order Matters**: Routes are tested in the order they appear in the JSON file. The first matching rule wins.
+- **Middleware Order**: Custom middlewares run after built-in middlewares (CORS, compression) but before routes.
+- **Query Strings**: Query strings in the original request are preserved when rewriting URLs.
+- **File Formats**: Routes must be in JSON format. Middlewares support `.js`, `.cjs`, `.mjs`, and `.ts` files.

@@ -4,7 +4,8 @@ import compression from 'compression';
 import { Database } from './database';
 import { createRouter, RouterOptions } from './router';
 import { createStaticMiddleware, createHomepageMiddleware, StaticOptions } from './static';
-import { loadRoutes, loadMiddlewares } from './loader';
+import { loadMiddlewares } from './loader';
+import { loadRewriteRules, createRewriterMiddleware } from './rewriter';
 
 /**
  * Server configuration options
@@ -91,24 +92,25 @@ export async function createServer(db: Database, options: Partial<ServerOptions>
   // Static file server
   app.use(createStaticMiddleware(options));
 
-  // Special endpoint: /db (full database dump)
-  app.get('/db', (_req, res) => {
-    res.json(db.getData());
-  });
-
-  // Custom routes (load before default API routes)
+  // Custom route rewriting (load before all routes)
   if (options.routes) {
     try {
-      const customRouter = await loadRoutes(options.routes);
-      app.use(customRouter);
+      const rules = await loadRewriteRules(options.routes);
+      const rewriter = createRewriterMiddleware(rules);
+      app.use(rewriter);
       if (!options.quiet) {
-        console.log(`✓ Loaded custom routes from ${options.routes}`);
+        console.log(`✓ Loaded route rewrite rules from ${options.routes}`);
       }
     } catch (error) {
       console.error(`Failed to load routes: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
+
+  // Special endpoint: /db (full database dump)
+  app.get('/db', (_req, res) => {
+    res.json(db.getData());
+  });
 
   // API routes
   const router = createRouter(db, options);
