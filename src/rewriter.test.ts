@@ -242,5 +242,89 @@ describe('rewriter', () => {
       const response = await request(app).get('/news/latest');
       expect((response.body as { url: string }).url).toBe('/news');
     });
+
+    it('should handle multiple wildcards', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/api/*/*': '/$1?name=$2',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/api/users/john');
+      expect((response.body as { url: string }).url).toBe('/users?name=john');
+    });
+
+    it('should handle multiple wildcards with more path segments', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/api/*/*': '/$1/$2',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/api/posts/comments/nested');
+      expect((response.body as { url: string }).url).toBe('/posts/comments/nested');
+    });
+
+    it('should use prefix matching - rewrite URL with query string preserved', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/api/*': '/$1',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/api/posts?id=1');
+      expect((response.body as { url: string }).url).toBe('/posts?id=1');
+    });
+
+    it('should use prefix matching - not affect unmatched URLs', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/me': '/profile',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/message');
+      expect((response.body as { url: string }).url).toBe('/message');
+    });
+
+    it('should rewrite with prefix match and preserve complex query strings', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/api/*': '/$1',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/api/posts?_sort=date&_order=asc&_limit=10');
+      expect((response.body as { url: string }).url).toBe('/posts?_sort=date&_order=asc&_limit=10');
+    });
+
+    it('should rewrite with prefix match and preserve complex route parameters', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/api/*': '/$1',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/api/posts/1/comments/42?_sort=date&_order=asc&_limit=10');
+      expect((response.body as { url: string }).url).toBe('/posts/1/comments/42?_sort=date&_order=asc&_limit=10');
+    });
   });
 });

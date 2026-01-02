@@ -86,6 +86,28 @@ describe('Query Processing - Phase 3', () => {
       expect(result.q).toBe('search text');
     });
 
+    it('should ignore empty full-text search parameter', () => {
+      const req = {
+        query: {
+          q: '',
+        },
+      } as unknown as Request;
+
+      const result = parseQuery(req);
+      expect(result.q).toBeUndefined();
+    });
+
+    it('should ignore whitespace-only full-text search parameter', () => {
+      const req = {
+        query: {
+          q: '   ',
+        },
+      } as unknown as Request;
+
+      const result = parseQuery(req);
+      expect(result.q).toBeUndefined();
+    });
+
     it('should parse operator filters (_gte, _lte, _ne, _like)', () => {
       const req = {
         query: {

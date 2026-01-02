@@ -83,6 +83,7 @@ export async function loadRewriteRules(filePath: string): Promise<RewriteRules> 
  */
 function patternToRegex(pattern: string): { regex: RegExp; params: string[] } {
   const params: string[] = [];
+  let wildcardCount = 0;
 
   // Escape special regex characters except * and :
   let regexPattern = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
@@ -93,10 +94,11 @@ function patternToRegex(pattern: string): { regex: RegExp; params: string[] } {
     return '([^/]+)';
   });
 
-  // Replace * with capturing group
+  // Replace * with capturing group (supports multiple wildcards)
   regexPattern = regexPattern.replace(/\*/g, () => {
-    params.push(`$${String(params.length + 1)}`);
-    return '(.*)';
+    wildcardCount++;
+    params.push(`$${String(wildcardCount)}`);
+    return '(.*?)';
   });
 
   return {
@@ -121,8 +123,13 @@ function patternToRegex(pattern: string): { regex: RegExp; params: string[] } {
  * ```
  */
 function rewriteUrl(url: string, fromPattern: string, toPattern: string): string | null {
+  // Separate the path and query string
+  const splitResult = url.split('?', 2);
+  const urlPath = splitResult[0] ?? '';
+  const queryString = splitResult[1];
+  
   const { regex, params } = patternToRegex(fromPattern);
-  const match = url.match(regex);
+  const match = urlPath.match(regex);
 
   if (!match) {
     return null;
@@ -149,6 +156,11 @@ function rewriteUrl(url: string, fromPattern: string, toPattern: string): string
     if (param && !param.startsWith('$') && value !== undefined) {
       result = result.replace(`:${param}`, value);
     }
+  }
+
+  // Append query string if present
+  if (queryString) {
+    result += '?' + queryString;
   }
 
   return result;

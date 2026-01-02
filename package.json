@@ -1,6 +1,6 @@
 {
   "name": "rest_api_faker",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Get a full fake REST API with zero coding in less than 30 seconds",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

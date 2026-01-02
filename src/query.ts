@@ -112,7 +112,7 @@ export function parseQuery(req: Request): QueryOptions {
       continue;
     }
 
-    if (key === 'q' && stringValue) {
+    if (key === 'q' && stringValue && stringValue.trim() !== '') {
       q = stringValue;
       continue;
     }
