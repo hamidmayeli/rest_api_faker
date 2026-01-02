@@ -165,8 +165,8 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 ### 6.2 Custom Files
 - [x] Implement `--routes` / `-r` for custom routes
 - [x] Implement `--middlewares` / `-m` for custom middleware
-- [ ] Load and validate route files
-- [ ] Load and execute middleware files
+- [x] Load and validate route files
+- [x] Load and execute middleware files
 
 ### 6.3 CORS & Compression
 - [x] Implement `--no-cors` / `--nc` option
@@ -197,6 +197,7 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [ ] Test config file loading
 - [ ] Test remote schema loading
 - [x] Test JS file execution
+- [x] Test custom routes/middlewares loading
 - [ ] Test watch mode
 
 ## Phase 7: Programmatic API

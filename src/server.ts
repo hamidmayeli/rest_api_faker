@@ -4,6 +4,7 @@ import compression from 'compression';
 import { Database } from './database';
 import { createRouter, RouterOptions } from './router';
 import { createStaticMiddleware, createHomepageMiddleware, StaticOptions } from './static';
+import { loadRoutes, loadMiddlewares } from './loader';
 
 /**
  * Server configuration options
@@ -15,6 +16,8 @@ export interface ServerOptions extends RouterOptions, StaticOptions {
   noGzip?: boolean;
   delay?: number;
   quiet?: boolean;
+  routes?: string;
+  middlewares?: string;
 }
 
 /**
@@ -28,10 +31,10 @@ export interface ServerOptions extends RouterOptions, StaticOptions {
  * ```typescript
  * const db = new Database('db.json');
  * await db.init();
- * const app = createServer(db, { port: 3000 });
+ * const app = await createServer(db, { port: 3000 });
  * ```
  */
-export function createServer(db: Database, options: Partial<ServerOptions> = {}): Express {
+export async function createServer(db: Database, options: Partial<ServerOptions> = {}): Promise<Express> {
   const app = express();
 
   // CORS
@@ -66,6 +69,22 @@ export function createServer(db: Database, options: Partial<ServerOptions> = {})
     });
   }
 
+  // Custom middlewares (load before routes)
+  if (options.middlewares) {
+    try {
+      const middlewares = await loadMiddlewares(options.middlewares);
+      for (const middleware of middlewares) {
+        app.use(middleware);
+      }
+      if (!options.quiet) {
+        console.log(`✓ Loaded custom middlewares from ${options.middlewares}`);
+      }
+    } catch (error) {
+      console.error(`Failed to load middlewares: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+
   // Homepage middleware (must be before static to allow custom index.html)
   app.use(createHomepageMiddleware(options));
 
@@ -76,6 +95,20 @@ export function createServer(db: Database, options: Partial<ServerOptions> = {})
   app.get('/db', (_req, res) => {
     res.json(db.getData());
   });
+
+  // Custom routes (load before default API routes)
+  if (options.routes) {
+    try {
+      const customRouter = await loadRoutes(options.routes);
+      app.use(customRouter);
+      if (!options.quiet) {
+        console.log(`✓ Loaded custom routes from ${options.routes}`);
+      }
+    } catch (error) {
+      console.error(`Failed to load routes: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
 
   // API routes
   const router = createRouter(db, options);

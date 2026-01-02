@@ -15,7 +15,7 @@ interface CliConfig {
   host: string;
   watch: boolean;
   routes: string | undefined;
-  middlewares: string[] | undefined;
+  middlewares: string | undefined;
   static: string | undefined;
   noStatic: boolean;
   readOnly: boolean;
@@ -84,8 +84,8 @@ function parseCli(): CliConfig {
     })
     .option('middlewares', {
       alias: 'm',
-      type: 'array',
-      description: 'Paths to middleware files',
+      type: 'string',
+      description: 'Path to middleware file',
     })
     .option('static', {
       alias: 's',
@@ -158,7 +158,7 @@ function parseCli(): CliConfig {
     host: argv.host,
     watch: argv.watch,
     routes: argv.routes,
-    middlewares: argv.middlewares as string[] | undefined,
+    middlewares: argv.middlewares,
     static: argv.static,
     noStatic: argv['no-static'],
     readOnly: argv['read-only'],
@@ -237,12 +237,22 @@ async function main(): Promise<void> {
       serverOptions.directory = config.static;
     }
 
+    // Add custom routes if specified
+    if (config.routes) {
+      serverOptions.routes = config.routes;
+    }
+
+    // Add custom middlewares if specified
+    if (config.middlewares) {
+      serverOptions.middlewares = config.middlewares;
+    }
+
     // Only add delay if it's defined
     if (config.delay !== undefined) {
       serverOptions.delay = config.delay;
     }
 
-    const app = createServer(db, serverOptions);
+    const app = await createServer(db, serverOptions);
 
     const server = startServer(app, {
       port: config.port,

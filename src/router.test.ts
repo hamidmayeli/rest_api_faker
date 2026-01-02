@@ -26,7 +26,7 @@ describe('Router Integration Tests', () => {
     writeFileSync(testDbPath, JSON.stringify(testData));
     db = new Database(testDbPath);
     await db.init();
-    const app = createServer(db, { quiet: true });
+    const app = await createServer(db, { quiet: true });
     request = supertest(app);
   });
 
@@ -269,7 +269,7 @@ describe('Router Integration Tests', () => {
       writeFileSync(readOnlyPath, JSON.stringify(testData));
       const readOnlyDb = new Database(readOnlyPath);
       await readOnlyDb.init();
-      const app = createServer(readOnlyDb, { readOnly: true, quiet: true });
+      const app = await createServer(readOnlyDb, { readOnly: true, quiet: true });
       readOnlyRequest = supertest(app);
     });
 

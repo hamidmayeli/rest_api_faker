@@ -4,10 +4,11 @@ import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { Database } from './database';
 import { createServer } from './server';
+import { Express } from 'express';
 
 describe('Server Special Endpoints', () => {
   let db: Database;
-  let app: ReturnType<typeof createServer>;
+  let app: Express;
   const testDbPath = resolve(__dirname, '../test-server-db.json');
 
   beforeAll(async () => {
@@ -30,7 +31,7 @@ describe('Server Special Endpoints', () => {
     db = new Database(testDbPath);
     await db.init();
 
-    app = createServer(db, { quiet: true });
+    app = await createServer(db, { quiet: true });
   });
 
   afterAll(() => {
@@ -112,7 +113,7 @@ describe('Server Special Endpoints', () => {
 
   describe('Server Options', () => {
     it('should support disabled static serving', async () => {
-      const appNoStatic = createServer(db, { enabled: false, quiet: true });
+      const appNoStatic = await createServer(db, { enabled: false, quiet: true });
       const response = await request(appNoStatic).get('/');
       
       expect(response.status).toBe(200);
@@ -120,7 +121,7 @@ describe('Server Special Endpoints', () => {
     });
 
     it('should support custom static directory', async () => {
-      const appCustom = createServer(db, { directory: './custom', quiet: true });
+      const appCustom = await createServer(db, { directory: './custom', quiet: true });
       const response = await request(appCustom).get('/users');
       
       // Should still work with custom directory
