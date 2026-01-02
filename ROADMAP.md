@@ -135,22 +135,22 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 ## Phase 5: Static & Special Routes (Week 8)
 
 ### 5.1 Static File Server
-- [ ] Serve `./public` directory by default
-- [ ] Support custom static directory via `--static`
-- [ ] Serve index.html for root route
-- [ ] Handle 404s for missing files
-- [ ] Set proper MIME types
+- [x] Serve `./public` directory by default
+- [x] Support custom static directory via `--static`
+- [x] Serve index.html for root route
+- [x] Handle 404s for missing files
+- [x] Set proper MIME types
 
 ### 5.2 Special Endpoints
-- [ ] Implement `/db` endpoint (full database dump)
-- [ ] Implement homepage route (`/`)
-- [ ] Add default landing page
-- [ ] Display available routes
+- [x] Implement `/db` endpoint (full database dump)
+- [x] Implement homepage route (`/`)
+- [x] Add default landing page
+- [x] Display available routes
 
 ### 5.3 Testing
-- [ ] Test static file serving
-- [ ] Test special endpoints
-- [ ] Test MIME types
+- [x] Test static file serving
+- [x] Test special endpoints
+- [x] Test MIME types
 
 ## Phase 6: CLI Features (Week 9-10)
 

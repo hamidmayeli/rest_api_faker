@@ -16,6 +16,7 @@ interface CliConfig {
   routes: string | undefined;
   middlewares: string[] | undefined;
   static: string | undefined;
+  noStatic: boolean;
   readOnly: boolean;
   noCors: boolean;
   noGzip: boolean;
@@ -89,6 +90,12 @@ function parseCli(): CliConfig {
       alias: 's',
       type: 'string',
       description: 'Set static files directory',
+      default: './public',
+    })
+    .option('no-static', {
+      type: 'boolean',
+      description: 'Disable static file serving',
+      default: false,
     })
     .option('read-only', {
       alias: 'ro',
@@ -152,6 +159,7 @@ function parseCli(): CliConfig {
     routes: argv.routes,
     middlewares: argv.middlewares as string[] | undefined,
     static: argv.static,
+    noStatic: argv['no-static'],
     readOnly: argv['read-only'],
     noCors: argv['no-cors'],
     noGzip: argv['no-gzip'],
@@ -220,7 +228,13 @@ async function main(): Promise<void> {
       quiet: config.quiet,
       idField: config.id,
       foreignKeySuffix: config.foreignKeySuffix,
+      enabled: !config.noStatic,
     };
+
+    // Add static directory if specified
+    if (config.static) {
+      serverOptions.directory = config.static;
+    }
 
     // Only add delay if it's defined
     if (config.delay !== undefined) {

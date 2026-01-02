@@ -3,11 +3,12 @@ import cors from 'cors';
 import compression from 'compression';
 import { Database } from './database';
 import { createRouter, RouterOptions } from './router';
+import { createStaticMiddleware, createHomepageMiddleware, StaticOptions } from './static';
 
 /**
  * Server configuration options
  */
-export interface ServerOptions extends RouterOptions {
+export interface ServerOptions extends RouterOptions, StaticOptions {
   port?: number;
   host?: string;
   noCors?: boolean;
@@ -64,6 +65,17 @@ export function createServer(db: Database, options: Partial<ServerOptions> = {})
       next();
     });
   }
+
+  // Homepage middleware (must be before static to allow custom index.html)
+  app.use(createHomepageMiddleware(options));
+
+  // Static file server
+  app.use(createStaticMiddleware(options));
+
+  // Special endpoint: /db (full database dump)
+  app.get('/db', (_req, res) => {
+    res.json(db.getData());
+  });
 
   // API routes
   const router = createRouter(db, options);
