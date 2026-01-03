@@ -72,6 +72,7 @@ export interface Config {
   id?: string;
   foreignKeySuffix?: string;
   quiet?: boolean;
+  logLevel?: 'trace' | 'debug' | 'info';
 }
 
 /**

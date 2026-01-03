@@ -6,7 +6,7 @@ import { watch } from 'chokidar';
 import { Database } from './database';
 import { createServer, startServer, ServerOptions } from './server';
 import { loadConfig, mergeConfig, Config } from './config';
-import { logger } from './logger';
+import { logger, setLogLevel } from './logger';
 
 /**
  * CLI configuration interface
@@ -28,6 +28,7 @@ interface CliConfig {
   id: string;
   foreignKeySuffix: string;
   quiet: boolean;
+  logLevel: 'trace' | 'debug' | 'info';
   config: string;
 }
 
@@ -147,6 +148,13 @@ function parseCli(): CliConfig {
       description: 'Suppress log messages from output',
       default: false,
     })
+    .option('log-level', {
+      alias: 'l',
+      type: 'string',
+      description: 'Set log level (trace | debug | info)',
+      default: 'info',
+      choices: ['trace', 'debug', 'info'],
+    })
     .help('help', 'Show help')
     .alias('h', 'help')
     .version(getVersion())
@@ -184,6 +192,7 @@ function parseCli(): CliConfig {
   if (argv.id !== 'id') cliConfig.id = argv.id;
   if (argv.foreignKeySuffix !== 'Id') cliConfig.foreignKeySuffix = argv.foreignKeySuffix;
   if (argv.quiet) cliConfig.quiet = argv.quiet;
+  if (argv['log-level'] !== 'info') cliConfig.logLevel = argv['log-level'] as 'trace' | 'debug' | 'info';
 
   // Merge config file with CLI args (CLI takes precedence)
   const merged = mergeConfig(cliConfig, fileConfig);
@@ -205,6 +214,7 @@ function parseCli(): CliConfig {
     id: merged.id ?? 'id',
     foreignKeySuffix: merged.foreignKeySuffix ?? 'Id',
     quiet: merged.quiet ?? false,
+    logLevel: merged.logLevel ?? 'info',
     config: argv.config,
   };
 }
@@ -214,6 +224,9 @@ function parseCli(): CliConfig {
  */
 async function main(): Promise<void> {
   const config = parseCli();
+
+  // Set log level
+  setLogLevel(config.logLevel);
 
   if (!config.quiet) {
     logger.log(`
@@ -297,58 +310,119 @@ async function main(): Promise<void> {
     });
 
     // Set up file watching if enabled
-    if (config.watch && config.source && existsSync(config.source)) {
-      const watcher = watch(config.source, {
-        ignoreInitial: true,
-        persistent: true,
-      });
-
-      watcher.on('change', (path) => {
-        if (!config.quiet) {
-          logger.log('');
-          logger.info(`File changed: ${path}`);
-          logger.info('Reloading database...');
-        }
-
-        db.init()
-          .then(() => {
-            if (!config.quiet) {
-              const data = db.getData();
-              const resources = Object.keys(data);
-              logger.success(
-                `Reloaded ${String(resources.length)} resource(s): ${resources.join(', ')}`
-              );
-            }
-          })
-          .catch((error: unknown) => {
-            logger.error(
-              `Failed to reload database: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
-          });
-      });
-
-      watcher.on('error', (error) => {
-        logger.error(`Watcher error: ${error instanceof Error ? error.message : String(error)}`);
-      });
-
-      if (!config.quiet) {
-        logger.info(`Watching ${config.source} for changes...`);
-        logger.log('');
+    if (config.watch) {
+      const filesToWatch: string[] = [];
+      
+      // Watch data source if it exists
+      if (config.source && existsSync(config.source)) {
+        filesToWatch.push(config.source);
+      }
+      
+      // Watch routes file if specified
+      if (config.routes && existsSync(config.routes)) {
+        filesToWatch.push(config.routes);
+      }
+      
+      // Watch middlewares file if specified
+      if (config.middlewares && existsSync(config.middlewares)) {
+        filesToWatch.push(config.middlewares);
       }
 
-      // Handle graceful shutdown
-      process.on('SIGINT', () => {
+      if (filesToWatch.length === 0) {
         if (!config.quiet) {
-          logger.log('');
-          logger.info('Shutting down...');
+          logger.warn('Watch mode enabled but no files found to watch');
         }
-        watcher.close().catch(() => {
-          // Ignore errors during shutdown
+      } else {
+        const watcher = watch(filesToWatch, {
+          ignoreInitial: true,
+          persistent: true,
         });
-        server.close(() => {
-          process.exit(0);
+
+        watcher.on('change', (path) => {
+          void (async () => {
+            if (!config.quiet) {
+              logger.log('');
+              logger.info(`File changed: ${path}`);
+            }
+
+            try {
+            // If data file changed, reload database
+            if (path === config.source) {
+              if (!config.quiet) {
+                logger.info('Reloading database...');
+              }
+
+              await db.init();
+
+              if (!config.quiet) {
+                const data = db.getData();
+                const resources = Object.keys(data);
+                logger.success(
+                  `Reloaded ${String(resources.length)} resource(s): ${resources.join(', ')}`
+                );
+              }
+            }
+
+            // If routes or middlewares changed, recreate server
+            if (path === config.routes || path === config.middlewares) {
+              if (!config.quiet) {
+                logger.info('Reloading server configuration...');
+              }
+
+              // Close existing server
+              await new Promise<void>((resolve) => {
+                server.close(() => {
+                  resolve();
+                });
+              });
+
+              // Recreate server with new configuration
+              const newApp = await createServer(db, serverOptions);
+              const newServer = startServer(newApp, {
+                port: config.port,
+                host: config.host,
+                quiet: config.quiet,
+              });
+
+              // Update server reference for shutdown
+              Object.assign(server, newServer);
+
+              if (!config.quiet) {
+                logger.success('Server reloaded successfully');
+              }
+            }
+          } catch (error: unknown) {
+            logger.error(
+              `Failed to reload: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+          }
+          })();
         });
-      });
+
+        watcher.on('error', (error) => {
+          logger.error(`Watcher error: ${error instanceof Error ? error.message : String(error)}`);
+        });
+
+        if (!config.quiet) {
+          const watchList = filesToWatch.map((f) => f).join(', ');
+          logger.info(`Watching ${watchList} for changes...`);
+          logger.log('');
+        }
+
+        // Handle graceful shutdown
+        process.on('SIGINT', () => {
+          if (!config.quiet) {
+            logger.log('');
+            logger.info('Shutting down...');
+          }
+          watcher.close().catch(() => {
+            // Ignore errors during shutdown
+          });
+          server.close(() => {
+            process.exit(0);
+          });
+        });
+      }
     }
   } catch (error) {
     logger.error(error instanceof Error ? error.message : 'Unknown error');

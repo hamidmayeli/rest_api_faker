@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { readFile } from 'node:fs/promises';
+import { logger } from './logger';
 
 /**
  * Route rewrite rules mapping
@@ -187,6 +188,8 @@ function rewriteUrl(url: string, fromPattern: string, toPattern: string): string
   if (!patternQuery && urlQuery) {
     result += '?' + urlQuery;
   }
+
+  logger.info(`Rewriting URL: '${url}' → '${result}' using pattern '${fromPattern}'`);
 
   return result;
 }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { logger } from './logger';
+import { logger, setLogLevel } from './logger';
 
 describe('Logger', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -109,6 +109,104 @@ describe('Logger', () => {
       const rocketLine = consoleLogSpy.mock.calls[1]?.[0] as string;
       expect(rocketLine).toContain('🚀');
       expect(rocketLine).toContain('API Faker is running!');
+    });
+  });
+
+  describe('debug()', () => {
+    it('should log debug message with bug emoji', () => {
+      setLogLevel('debug');
+      logger.debug('Debugging information');
+
+      expect(consoleLogSpy).toHaveBeenCalledOnce();
+      expect(consoleLogSpy.mock.calls[0]?.[0]).toContain('🐛');
+      expect(consoleLogSpy.mock.calls[0]?.[0]).toContain('Debugging information');
+    });
+
+    it('should not log debug message when level is info', () => {
+      setLogLevel('info');
+      logger.debug('This should not appear');
+
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+    });
+
+    it('should log debug message when level is trace', () => {
+      setLogLevel('trace');
+      logger.debug('This should appear');
+
+      expect(consoleLogSpy).toHaveBeenCalledOnce();
+      expect(consoleLogSpy.mock.calls[0]?.[0]).toContain('🐛');
+    });
+  });
+
+  describe('trace()', () => {
+    it('should log trace message with magnifying glass emoji', () => {
+      setLogLevel('trace');
+      logger.trace('Trace information');
+
+      expect(consoleLogSpy).toHaveBeenCalledOnce();
+      expect(consoleLogSpy.mock.calls[0]?.[0]).toContain('🔍');
+      expect(consoleLogSpy.mock.calls[0]?.[0]).toContain('Trace information');
+    });
+
+    it('should not log trace message when level is debug', () => {
+      setLogLevel('debug');
+      logger.trace('This should not appear');
+
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not log trace message when level is info', () => {
+      setLogLevel('info');
+      logger.trace('This should not appear');
+
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setLogLevel()', () => {
+    it('should filter logs based on trace level (show all)', () => {
+      setLogLevel('trace');
+      
+      logger.trace('Trace message');
+      logger.debug('Debug message');
+      logger.info('Info message');
+
+      expect(consoleLogSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('should filter logs based on debug level (hide trace)', () => {
+      setLogLevel('debug');
+      
+      logger.trace('Trace message');
+      logger.debug('Debug message');
+      logger.info('Info message');
+
+      expect(consoleLogSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should filter logs based on info level (hide trace and debug)', () => {
+      setLogLevel('info');
+      
+      logger.trace('Trace message');
+      logger.debug('Debug message');
+      logger.info('Info message');
+
+      expect(consoleLogSpy).toHaveBeenCalledOnce();
+      expect(consoleLogSpy.mock.calls[0]?.[0]).toContain('ℹ');
+    });
+
+    it('should not affect other log methods', () => {
+      setLogLevel('info');
+      
+      logger.success('Success');
+      logger.error('Error');
+      logger.warn('Warning');
+      logger.log('Plain');
+
+      // All of these should still work regardless of log level
+      expect(consoleLogSpy).toHaveBeenCalledTimes(2); // success, log
+      expect(consoleErrorSpy).toHaveBeenCalledOnce(); // error
+      expect(consoleWarnSpy).toHaveBeenCalledOnce(); // warn
     });
   });
 });

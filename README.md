@@ -90,6 +90,8 @@ Or with watch mode to auto-reload on file changes:
 rest_api_faker --watch db.json
 ```
 
+**Note:** Watch mode monitors your data file, routes file, and middlewares file for changes and automatically reloads them.
+
 **3. Access your API:**
 
 ```bash
@@ -116,7 +118,7 @@ Options:
   -c, --config <path>          Path to config file (default: "rest_api_faker.json")
   -p, --port <number>          Set port (default: 3000)
   -H, --host <string>          Set host (default: "localhost")
-  -w, --watch                  Watch file(s) for changes
+  -w, --watch                  Watch data, routes, and middlewares files for changes
   -r, --routes <path>          Path to routes file (URL rewrite rules)
   -m, --middlewares <path>     Path to middleware file
   -s, --static <path>          Set static files directory (default: "./public")
@@ -129,8 +131,14 @@ Options:
   -i, --id <field>             Set database id property (default: "id")
   --fks <suffix>               Set foreign key suffix (default: "Id")
   -q, --quiet                  Suppress log messages
+  -l, --log-level <level>      Set log level: trace | debug | info (default: "info")
   -h, --help                   Show help
   -v, --version                Show version number
+
+Log Levels:
+  trace                        Show all logs including trace messages (most verbose)
+  debug                        Show debug and info logs (hide trace)
+  info                         Show only info logs (default, least verbose)
 
 Examples:
   rest_api_faker db.json                    Start with db.json
@@ -138,6 +146,8 @@ Examples:
   rest_api_faker --port 4000 db.json        Start on port 4000
   rest_api_faker file.js                    Use a JavaScript file
   rest_api_faker --routes routes.json       Use custom routes
+  rest_api_faker --log-level debug db.json  Show debug logs
+  rest_api_faker --log-level trace db.json  Show all logs including trace
 ```
 
 ### Routes
@@ -317,9 +327,27 @@ You can use a configuration file instead of CLI options. Create an `rest_api_fak
   "delay": 0,
   "id": "id",
   "foreignKeySuffix": "Id",
-  "quiet": false
+  "quiet": false,
+  "logLevel": "info"
 }
 ```
+
+**Configuration Options:**
+
+- `port` - Server port (default: 3000)
+- `host` - Server host (default: "localhost")
+- `watch` - Watch for file changes (default: false)
+- `routes` - Path to routes file for URL rewriting
+- `middlewares` - Path to custom middleware file
+- `static` - Static files directory (default: "./public")
+- `readOnly` - Allow only GET requests (default: false)
+- `noCors` - Disable CORS (default: false)
+- `noGzip` - Disable GZIP compression (default: false)
+- `delay` - Add delay to responses in milliseconds
+- `id` - Database ID field name (default: "id")
+- `foreignKeySuffix` - Foreign key suffix (default: "Id")
+- `quiet` - Suppress log messages (default: false)
+- `logLevel` - Log level: "trace" | "debug" | "info" (default: "info")
 
 Then simply run:
 

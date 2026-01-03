@@ -3,6 +3,7 @@
  */
 
 import type { Request } from 'express';
+import { logger } from './logger';
 
 /**
  * Query options extracted from request
@@ -156,6 +157,8 @@ export function parseQuery(req: Request): QueryOptions {
   if (end !== undefined) result.end = end;
   if (q !== undefined) result.q = q;
 
+  logger.debug(`Parsed query options: ${JSON.stringify(result)}`);
+
   return result;
 }
 
@@ -203,6 +206,9 @@ function matchesFilters(item: unknown, filters: Record<string, string | string[]
   }
 
   for (const [key, filterValue] of Object.entries(filters)) {
+    // Skip full-text search key
+    if(key === 'q') continue;
+    
     const itemValue = getNestedValue(item, key);
 
     if (Array.isArray(filterValue)) {
@@ -314,21 +320,31 @@ function matchesSearch(item: unknown, searchText: string): boolean {
 export function applyQuery<T>(data: T[], options: QueryOptions): { data: T[]; total: number } {
   let result = [...data];
 
+  logger.trace(`Applying query: ${JSON.stringify(options)} on ${data.length.toString()} items`);
+
   // Apply full-text search
   if (options.q) {
+    logger.trace(`Applying full-text search for: '${options.q}'`);
+
     const searchText = options.q;
     result = result.filter((item) => matchesSearch(item, searchText));
   }
+
+  logger.trace(`After full-text search, ${result.length.toString()} items remain`);
 
   // Apply filters
   if (Object.keys(options.filters).length > 0) {
     result = result.filter((item) => matchesFilters(item, options.filters));
   }
 
+  logger.trace(`After filtering, ${result.length.toString()} items remain`);
+
   // Apply operators
   if (Object.keys(options.operators).length > 0) {
     result = result.filter((item) => matchesOperators(item, options.operators));
   }
+
+  logger.trace(`After applying operators, ${result.length.toString()} items remain`);
 
   // Store total before pagination
   const total = result.length;
@@ -362,21 +378,31 @@ export function applyQuery<T>(data: T[], options: QueryOptions): { data: T[]; to
     });
   }
 
+  logger.trace(`After sorting, ${result.length.toString()} items remain`);
+
   // Apply slicing (_start and _end)
   if (options.start !== undefined || options.end !== undefined) {
+    logger.trace(`Applying slicing from ${options.start?.toString() ?? ''} to ${options.end?.toString() ?? 'end'}`);
+    
     const start = options.start ?? 0;
     const end = options.end ?? result.length;
     result = result.slice(start, end);
   }
   // Apply pagination (_page and _limit)
   else if (options.page !== undefined && options.limit !== undefined) {
+    logger.trace(`Applying pagination: page ${options.page.toString()}, limit ${options.limit.toString()}`);
+    
     const start = (options.page - 1) * options.limit;
     result = result.slice(start, start + options.limit);
   }
   // Apply limit only
   else if (options.limit !== undefined) {
+    logger.trace(`Applying limit: ${options.limit.toString()}`);
+
     result = result.slice(0, options.limit);
   }
+
+  logger.trace(`After pagination/slicing, ${result.length.toString()} items remain`);
 
   return { data: result, total };
 }
