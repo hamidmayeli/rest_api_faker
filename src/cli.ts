@@ -304,7 +304,7 @@ async function main(): Promise<void> {
 
     const app = await createServer(db, serverOptions);
 
-    const server = startServer(app, {
+    let server = startServer(app, {
       port: config.port,
       host: config.host,
       quiet: config.quiet,
@@ -364,32 +364,61 @@ async function main(): Promise<void> {
               }
             }
 
-            // If routes or middlewares changed, recreate server
+            // If routes or middlewares changed, restart server
             if (path === config.routes || path === config.middlewares) {
               if (!config.quiet) {
-                logger.info('Reloading server configuration...');
+                logger.info('Restarting server to apply changes...');
               }
 
-              // Close existing server
+              // Clear Node.js module cache for the changed file
+              // This ensures we get fresh middleware/routes on reload
+              const { resolve: resolvePath } = await import('path');
+              const absolutePath = resolvePath(path);
+              
+              // Clear from import cache
+              const cacheKey = absolutePath;
+              if (cacheKey in require.cache) {
+                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                delete require.cache[cacheKey];
+              }
+
+              if (!config.quiet) {
+                logger.debug(`Cleared module cache for ${path}`);
+                logger.info('Shutting down current server...');
+              }
+
+              // Close existing server and wait for it to fully close
               await new Promise<void>((resolve) => {
                 server.close(() => {
+                  if (!config.quiet) {
+                    logger.debug('Server closed successfully');
+                  }
                   resolve();
                 });
               });
 
-              // Recreate server with new configuration
+              if (!config.quiet) {
+                logger.info('Creating new server with updated configuration...');
+              }
+
+              // Recreate server with fresh configuration
               const newApp = await createServer(db, serverOptions);
+              
+              if (!config.quiet) {
+                logger.info('Starting new server...');
+              }
+              
               const newServer = startServer(newApp, {
                 port: config.port,
                 host: config.host,
                 quiet: config.quiet,
               });
 
-              // Update server reference for shutdown
-              Object.assign(server, newServer);
+              // Replace server reference
+              server = newServer;
 
               if (!config.quiet) {
-                logger.success('Server reloaded successfully');
+                logger.success('✓ Server restarted successfully with new configuration');
               }
             }
           } catch (error: unknown) {
