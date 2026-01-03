@@ -344,6 +344,95 @@ describe('Database', () => {
       expect(fileContent.posts.length).toBe(0);
     });
   });
+
+  describe('AutoSave Functionality', () => {
+    it('should persist data to file when autoSave is true (default)', async () => {
+      writeFileSync(testDbPath, JSON.stringify({ posts: [] }));
+      const db = new Database(testDbPath, { autoSave: true });
+      await db.init();
+
+      await db.create('posts', { title: 'Persisted Post' });
+
+      // Read file directly to verify it was written
+      const fileContent = JSON.parse(readFileSync(testDbPath, 'utf-8')) as {
+        posts: Array<{ id: number; title: string }>;
+      };
+      expect(fileContent.posts.length).toBe(1);
+      expect(fileContent.posts[0]?.title).toBe('Persisted Post');
+    });
+
+    it('should NOT persist data to file when autoSave is false', async () => {
+      const initialData = { posts: [{ id: 1, title: 'Initial' }] };
+      writeFileSync(testDbPath, JSON.stringify(initialData));
+      const db = new Database(testDbPath, { autoSave: false });
+      await db.init();
+
+      // Create, update, and delete operations
+      await db.create('posts', { title: 'New Post' });
+      await db.update('posts', 1, { title: 'Updated' });
+      await db.delete('posts', 1);
+
+      // Read file directly - should still have original data
+      const fileContent = JSON.parse(readFileSync(testDbPath, 'utf-8')) as {
+        posts: Array<{ id: number; title: string }>;
+      };
+      expect(fileContent.posts.length).toBe(1);
+      expect(fileContent.posts[0]?.title).toBe('Initial');
+
+      // But in-memory data should be modified
+      const memoryData = db.getData() as { posts: Array<{ id: number; title: string }> };
+      expect(memoryData.posts.length).toBe(1);
+      expect(memoryData.posts[0]?.title).toBe('New Post');
+    });
+
+    it('should use autoSave true by default', async () => {
+      writeFileSync(testDbPath, JSON.stringify({ posts: [] }));
+      const db = new Database(testDbPath); // No options
+      await db.init();
+
+      await db.create('posts', { title: 'Default AutoSave' });
+
+      // Should be persisted by default
+      const fileContent = JSON.parse(readFileSync(testDbPath, 'utf-8')) as {
+        posts: Array<{ title: string }>;
+      };
+      expect(fileContent.posts.length).toBe(1);
+    });
+
+    it('should not persist singular resource updates when autoSave is false', async () => {
+      const initialData = { profile: { name: 'John' } };
+      writeFileSync(testDbPath, JSON.stringify(initialData));
+      const db = new Database(testDbPath, { autoSave: false });
+      await db.init();
+
+      await db.updateSingular('profile', { name: 'Jane' });
+
+      // File should still have original data
+      const fileContent = JSON.parse(readFileSync(testDbPath, 'utf-8')) as {
+        profile: { name: string };
+      };
+      expect(fileContent.profile.name).toBe('John');
+
+      // Memory should be updated
+      const memoryData = db.getData() as { profile: { name: string } };
+      expect(memoryData.profile.name).toBe('Jane');
+    });
+
+    it('should persist patch operations when autoSave is true', async () => {
+      writeFileSync(testDbPath, JSON.stringify({ posts: [{ id: 1, title: 'Old', author: 'Alice' }] }));
+      const db = new Database(testDbPath, { autoSave: true });
+      await db.init();
+
+      await db.patch('posts', 1, { title: 'Patched' });
+
+      // Should be persisted
+      const fileContent = JSON.parse(readFileSync(testDbPath, 'utf-8')) as {
+        posts: Array<{ id: number; title: string; author: string }>;
+      };
+      expect(fileContent.posts[0]?.title).toBe('Patched');
+      expect(fileContent.posts[0]?.author).toBe('Alice'); // Other fields preserved
+    });
+  });
 });
 
 import { readFileSync } from 'fs';

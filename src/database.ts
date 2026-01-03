@@ -17,6 +17,7 @@ export interface DatabaseData {
 export interface DatabaseOptions {
   idField?: string;
   foreignKeySuffix?: string;
+  autoSave?: boolean;
 }
 
 /**
@@ -35,7 +36,7 @@ export class Database {
    *
    * @example
    * ```typescript
-   * const db = new Database('db.json', { idField: 'id' });
+   * const db = new Database('db.json', { idField: 'id', autoSave: false });
    * await db.init();
    * ```
    */
@@ -43,6 +44,7 @@ export class Database {
     this.options = {
       idField: options.idField || 'id',
       foreignKeySuffix: options.foreignKeySuffix || 'Id',
+      autoSave: options.autoSave !== undefined ? options.autoSave : true,
     };
 
     if (typeof source === 'string') {
@@ -369,7 +371,9 @@ export class Database {
    * Save the database to file
    */
   async save(): Promise<void> {
-    await this.db.write();
+    if (this.options.autoSave) {
+      await this.db.write();
+    }
   }
 
   /**

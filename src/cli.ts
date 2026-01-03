@@ -257,6 +257,7 @@ async function main(): Promise<void> {
     const db = new Database(config.source, {
       idField: config.id,
       foreignKeySuffix: config.foreignKeySuffix,
+      autoSave: false, // Keep changes in memory only
     });
 
     await db.init();
