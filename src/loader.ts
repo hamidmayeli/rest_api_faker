@@ -25,7 +25,8 @@ export async function loadModule(filePath: string): Promise<unknown> {
         `\nMake sure:\n` +
         `  - The file exists and is a valid JavaScript file\n` +
         `  - The file doesn't have syntax errors\n` +
-        `  - All dependencies are installed`
+        `  - All dependencies are installed`,
+      { cause: error }
     );
   }
 }

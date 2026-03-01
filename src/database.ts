@@ -100,7 +100,8 @@ export class Database {
           }
         } catch (error) {
           throw new Error(
-            `Failed to load JavaScript module: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `Failed to load JavaScript module: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            { cause: error }
           );
         }
       } else {
