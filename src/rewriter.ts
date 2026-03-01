@@ -60,7 +60,8 @@ export async function loadRewriteRules(filePath: string): Promise<RewriteRules> 
         `  "/api/*": "/$1",\n` +
         `  "/users/:id": "/api/users/:id"\n` +
         `}\n` +
-        `\nSee examples/routes.json for more examples.`
+        `\nSee examples/routes.json for more examples.`,
+      { cause: error }
     );
   }
 }

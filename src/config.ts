@@ -116,7 +116,8 @@ export function loadConfig(configPath: string): Config | null {
       throw error;
     }
     throw new Error(
-      `Failed to load config from '${configPath}': ${error instanceof Error ? error.message : String(error)}`
+      `Failed to load config from '${configPath}': ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error }
     );
   }
 }
