@@ -17,6 +17,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine release channel
+        id: channel
+        run: |
+          git fetch origin main
+          if git merge-base --is-ancestor ${{ github.sha }} origin/main; then
+            echo "is_alpha=false" >> "$GITHUB_OUTPUT"
+            echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_alpha=true" >> "$GITHUB_OUTPUT"
+            echo "npm_tag=alpha" >> "$GITHUB_OUTPUT"
+          fi
       
       - name: Setup pnpm
         uses: pnpm/action-setup@v5
@@ -49,12 +63,12 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.channel.outputs.is_alpha == 'true' }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Publish to npm
-        run: pnpm publish --no-git-checks --access public
+        run: pnpm publish --no-git-checks --access public --tag ${{ steps.channel.outputs.npm_tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
