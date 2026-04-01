@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { logger, setLogLevel } from './logger';
+import { logger, setLogLevel } from './logger.js';
 
 describe('Logger', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;

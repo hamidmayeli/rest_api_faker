@@ -3,7 +3,7 @@ import express, { Express } from 'express';
 import request from 'supertest';
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
 import { resolve } from 'path';
-import { createStaticMiddleware, createHomepageMiddleware } from './static';
+import { createStaticMiddleware, createHomepageMiddleware } from './static.js';
 
 describe('Static Server', () => {
   const testDir = resolve(__dirname, '../test-public');

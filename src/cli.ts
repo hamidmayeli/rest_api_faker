@@ -1,12 +1,13 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { watch } from 'chokidar';
-import { Database } from './database';
-import { createServer, startServer, ServerOptions } from './server';
-import { loadConfig, mergeConfig, Config } from './config';
-import { logger, setLogLevel } from './logger';
+import { Database } from './database.js';
+import { createServer, startServer, ServerOptions } from './server.js';
+import { loadConfig, mergeConfig, Config } from './config.js';
+import { logger, setLogLevel } from './logger.js';
 
 /**
  * CLI configuration interface
@@ -37,6 +38,7 @@ interface CliConfig {
  */
 function getVersion(): string {
   try {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
     const packageJson = JSON.parse(
       readFileSync(resolve(__dirname, '../package.json'), 'utf-8')
     ) as { version: string };

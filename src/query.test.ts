@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseQuery, applyQuery, generateLinkHeader } from './query';
+import { parseQuery, applyQuery, generateLinkHeader } from './query.js';
 import type { Request } from 'express';
 
 describe('Query Processing - Phase 3', () => {

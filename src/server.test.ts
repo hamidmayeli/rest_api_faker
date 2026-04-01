@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { resolve } from 'path';
-import { Database } from './database';
-import { createServer } from './server';
+import { Database } from './database.js';
+import { createServer } from './server.js';
 import { Express } from 'express';
 
 describe('Server Special Endpoints', () => {

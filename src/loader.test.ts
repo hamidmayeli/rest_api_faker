@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { loadModule, loadMiddlewares } from './loader';
+import { loadModule, loadMiddlewares } from './loader.js';
 
 describe('loader', () => {
   const testDir = join(tmpdir(), 'rest_api_faker-loader-test');
