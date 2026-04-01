@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Database } from '../src/database';
+import { Database } from '../src/database.js';
 import { existsSync, unlinkSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 

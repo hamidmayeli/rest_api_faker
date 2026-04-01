@@ -2,7 +2,7 @@
  * Relationships module for handling _embed and _expand parameters
  */
 
-import type { Database } from './database';
+import type { Database } from './database.js';
 
 /**
  * Detect foreign key relationships based on naming conventions

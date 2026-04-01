@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { resolve } from 'path';
-import { Database } from './database';
+import { Database } from './database.js';
 
 describe('Database JavaScript Module Support', () => {
   const testJsPath = resolve(__dirname, '../test-db.js');

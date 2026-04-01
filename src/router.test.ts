@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Database } from '../src/database';
-import { createServer } from '../src/server';
+import { Database } from '../src/database.js';
+import { createServer } from '../src/server.js';
 import supertest from 'supertest';
 import { writeFileSync, unlinkSync, existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
