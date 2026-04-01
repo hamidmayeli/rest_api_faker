@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { create, router, defaults, rewriter } from '../src/index';
+import { create, router, defaults, rewriter } from '../src/index.js';
 
 describe('API Faker - Module Exports', () => {
   it('should export create function', () => {

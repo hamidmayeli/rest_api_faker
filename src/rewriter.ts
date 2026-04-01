@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import { readFile } from 'node:fs/promises';
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 /**
  * Route rewrite rules mapping

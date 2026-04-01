@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import express, { Express } from 'express';
 import request from 'supertest';
-import { loadRewriteRules, createRewriterMiddleware } from './rewriter';
+import { loadRewriteRules, createRewriterMiddleware } from './rewriter.js';
 
 describe('rewriter', () => {
   let testDir: string;

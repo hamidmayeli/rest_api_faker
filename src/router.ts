@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { Database } from './database';
-import { logger } from './logger';
-import { parseQuery, applyQuery, generateLinkHeader } from './query';
-import { parseRelationships, applyRelationships, getForeignKey } from './relationships';
+import { Database } from './database.js';
+import { logger } from './logger.js';
+import { parseQuery, applyQuery, generateLinkHeader } from './query.js';
+import { parseRelationships, applyRelationships, getForeignKey } from './relationships.js';
 
 /**
  * Helper to safely get route param (Express guarantees route params exist)

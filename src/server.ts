@@ -1,12 +1,12 @@
 import express, { Express } from 'express';
 import cors from 'cors';
 import compression from 'compression';
-import { Database } from './database';
-import { createRouter, RouterOptions } from './router';
-import { createStaticMiddleware, createHomepageMiddleware, StaticOptions } from './static';
-import { loadMiddlewares } from './loader';
-import { loadRewriteRules, createRewriterMiddleware } from './rewriter';
-import { logger } from './logger';
+import { Database } from './database.js';
+import { createRouter, RouterOptions } from './router.js';
+import { createStaticMiddleware, createHomepageMiddleware, StaticOptions } from './static.js';
+import { loadMiddlewares } from './loader.js';
+import { loadRewriteRules, createRewriterMiddleware } from './rewriter.js';
+import { logger } from './logger.js';
 
 /**
  * Server configuration options

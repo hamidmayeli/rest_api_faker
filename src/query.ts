@@ -3,7 +3,7 @@
  */
 
 import type { Request } from 'express';
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 /**
  * Query options extracted from request

@@ -5,9 +5,9 @@
     "lib": ["ES2022"],
 
     /* Modules */
-    "module": "commonjs",
+    "module": "nodenext",
     "rootDir": "./src",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
 
     /* Emit */
