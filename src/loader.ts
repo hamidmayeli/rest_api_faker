@@ -1,5 +1,9 @@
 import { pathToFileURL } from 'node:url';
+import { resolve, extname } from 'node:path';
+import { createRequire } from 'node:module';
 import { RequestHandler } from 'express';
+
+const esmRequire = createRequire(import.meta.url);
 
 /**
  * Load a JavaScript or TypeScript module dynamically
@@ -15,8 +19,27 @@ import { RequestHandler } from 'express';
  */
 export async function loadModule(filePath: string): Promise<unknown> {
   try {
-    const fileUrl = pathToFileURL(filePath).href;
-    const module = (await import(fileUrl)) as { default?: unknown } & Record<string, unknown>;
+    const absolutePath = resolve(filePath);
+    const fileUrl = pathToFileURL(absolutePath).href;
+
+    // Clear module cache to support watch/reload.
+    // For CJS files (.cjs, .js), import() delegates to the CJS loader which
+    // caches by absolute path in require.cache — clear that first.
+    const ext = extname(absolutePath).toLowerCase();
+    if (ext === '.cjs' || ext === '.js') {
+      try {
+        const cacheKey = esmRequire.resolve(absolutePath);
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete esmRequire.cache[cacheKey];
+      } catch {
+        // File not in require.cache yet — nothing to clear
+      }
+    }
+    // A cache-busting query parameter forces the ESM loader to create a
+    // new wrapper module (needed for both ESM and CJS-via-import).
+    const importUrl = `${fileUrl}?t=${Date.now().toString()}`;
+
+    const module = (await import(importUrl)) as { default?: unknown } & Record<string, unknown>;
     return module;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

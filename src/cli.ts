@@ -350,7 +350,7 @@ async function main(): Promise<void> {
 
             try {
             // If data file changed, reload database
-            if (path === config.source) {
+            if (config.source && resolve(path) === resolve(config.source)) {
               if (!config.quiet) {
                 logger.info('Reloading database...');
               }
@@ -367,25 +367,12 @@ async function main(): Promise<void> {
             }
 
             // If routes or middlewares changed, restart server
-            if (path === config.routes || path === config.middlewares) {
+            if ((config.routes && resolve(path) === resolve(config.routes)) || (config.middlewares && resolve(path) === resolve(config.middlewares))) {
               if (!config.quiet) {
                 logger.info('Restarting server to apply changes...');
               }
 
-              // Clear Node.js module cache for the changed file
-              // This ensures we get fresh middleware/routes on reload
-              const { resolve: resolvePath } = await import('path');
-              const absolutePath = resolvePath(path);
-              
-              // Clear from import cache
-              const cacheKey = absolutePath;
-              if (cacheKey in require.cache) {
-                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-                delete require.cache[cacheKey];
-              }
-
               if (!config.quiet) {
-                logger.debug(`Cleared module cache for ${path}`);
                 logger.info('Shutting down current server...');
               }
 

@@ -3,6 +3,9 @@ import { JSONFile } from 'lowdb/node';
 import { existsSync } from 'fs';
 import { resolve, extname } from 'path';
 import { pathToFileURL } from 'url';
+import { createRequire } from 'node:module';
+
+const esmRequire = createRequire(import.meta.url);
 
 /**
  * Database data structure
@@ -83,7 +86,24 @@ export class Database {
         // Load JavaScript module
         try {
           const fileUrl = pathToFileURL(this.filePath).href;
-          const module = (await import(fileUrl)) as { default?: unknown } & Record<string, unknown>;
+
+          // Clear module cache to support watch/reload.
+          // For CJS files, import() delegates to the CJS loader which caches
+          // by absolute path in require.cache — clear that first.
+          if (ext === '.cjs' || ext === '.js') {
+            try {
+              const cacheKey = esmRequire.resolve(this.filePath);
+              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+              delete esmRequire.cache[cacheKey];
+            } catch {
+              // File not in require.cache yet — nothing to clear
+            }
+          }
+          // A cache-busting query parameter forces the ESM loader to create
+          // a new wrapper module.
+          const importUrl = `${fileUrl}?t=${Date.now().toString()}`;
+
+          const module = (await import(importUrl)) as { default?: unknown } & Record<string, unknown>;
           const data: unknown = module.default ?? module;
 
           // If it's a function, call it to get the data
