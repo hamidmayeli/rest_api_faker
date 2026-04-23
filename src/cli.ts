@@ -24,6 +24,7 @@ interface CliConfig {
   readOnly: boolean;
   noCors: boolean;
   noGzip: boolean;
+  noWs: boolean;
   snapshots: string;
   delay: number | undefined;
   id: string;
@@ -121,6 +122,11 @@ function parseCli(): CliConfig {
       description: 'Disable GZIP Content-Encoding',
       default: false,
     })
+    .option('no-ws', {
+      type: 'boolean',
+      description: 'Disable WebSocket server',
+      default: false,
+    })
     .option('snapshots', {
       alias: 'S',
       type: 'string',
@@ -211,6 +217,7 @@ function parseCli(): CliConfig {
     readOnly: merged.readOnly ?? false,
     noCors: merged.noCors ?? false,
     noGzip: merged.noGzip ?? false,
+    noWs: argv['no-ws'],
     snapshots: merged.snapshots ?? '.',
     delay: merged.delay,
     id: merged.id ?? 'id',
@@ -278,6 +285,7 @@ async function main(): Promise<void> {
       readOnly: config.readOnly,
       noCors: config.noCors,
       noGzip: config.noGzip,
+      noWs: config.noWs,
       quiet: config.quiet,
       idField: config.id,
       foreignKeySuffix: config.foreignKeySuffix,
@@ -310,6 +318,7 @@ async function main(): Promise<void> {
       port: config.port,
       host: config.host,
       quiet: config.quiet,
+      noWs: config.noWs,
     });
 
     // Set up file watching if enabled
@@ -401,6 +410,7 @@ async function main(): Promise<void> {
                 port: config.port,
                 host: config.host,
                 quiet: config.quiet,
+                noWs: config.noWs,
               });
 
               // Replace server reference

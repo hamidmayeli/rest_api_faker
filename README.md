@@ -23,6 +23,7 @@ Created with ❤️ for front-end developers who need a quick back-end for proto
   - [Relationships](#relationships)
 - [Configuration](#configuration)
 - [Custom Routes & Middlewares](#custom-routes--middlewares)
+- [WebSocket Support](#websocket-support)
 - [Examples](#examples)
 - [Programmatic Usage](#programmatic-usage)
 - [Development](#development)
@@ -42,6 +43,7 @@ Created with ❤️ for front-end developers who need a quick back-end for proto
 - 💾 **Auto-save** - Changes are automatically saved to your data file
 - 🌐 **CORS enabled** - Ready for cross-origin requests
 - ⚡ **Fast & lightweight** - Built with Express and TypeScript
+- 📡 **WebSocket support** - Real-time notifications on data changes
 - 🧪 **Well tested** - 214 tests with comprehensive coverage
 
 ## Installation
@@ -126,6 +128,7 @@ Options:
   --ro, --read-only            Allow only GET requests
   --nc, --no-cors              Disable Cross-Origin Resource Sharing
   --ng, --no-gzip              Disable GZIP Content-Encoding
+  --no-ws                      Disable WebSocket server
   -S, --snapshots <path>       Set snapshots directory (default: ".")
   -d, --delay <ms>             Add delay to responses (ms)
   -i, --id <field>             Set database id property (default: "id")
@@ -415,6 +418,90 @@ rest_api_faker db.json --middlewares middleware.js
 ```
 
 See [examples/README.md](examples/README.md) for more examples.
+
+## WebSocket Support
+
+API Faker includes a built-in WebSocket server that broadcasts real-time notifications whenever data changes. The WebSocket server runs on the same port as the HTTP server — no extra configuration needed.
+
+### Connecting
+
+Connect using the standard WebSocket API:
+
+```javascript
+const ws = new WebSocket('ws://localhost:3000');
+
+ws.onmessage = (event) => {
+  const change = JSON.parse(event.data);
+  console.log(change);
+};
+```
+
+### Event Format
+
+Each message is a JSON object with the following shape:
+
+```typescript
+{
+  type: 'create' | 'update' | 'delete',
+  resource: string,   // e.g. "posts"
+  data?: object,      // the created/updated item (absent on delete)
+  id?: string | number // the affected item's id (present on update/delete)
+}
+```
+
+**Examples of events you'll receive:**
+
+```jsonc
+// POST /posts
+{ "type": "create", "resource": "posts", "data": { "id": 3, "title": "New" } }
+
+// PATCH /posts/1
+{ "type": "update", "resource": "posts", "data": { "id": 1, "title": "Edited" }, "id": "1" }
+
+// DELETE /posts/1
+{ "type": "delete", "resource": "posts", "id": "1" }
+```
+
+### Disabling WebSocket
+
+If you don't need real-time updates, disable the WebSocket server:
+
+```bash
+rest_api_faker --no-ws db.json
+```
+
+### Usage with React
+
+```javascript
+import { useEffect, useState } from 'react';
+
+function useLiveData(resource) {
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    // Initial fetch
+    fetch(`http://localhost:3000/${resource}`)
+      .then((res) => res.json())
+      .then(setItems);
+
+    // Listen for changes
+    const ws = new WebSocket('ws://localhost:3000');
+    ws.onmessage = (event) => {
+      const change = JSON.parse(event.data);
+      if (change.resource === resource) {
+        // Re-fetch on any change to this resource
+        fetch(`http://localhost:3000/${resource}`)
+          .then((res) => res.json())
+          .then(setItems);
+      }
+    };
+
+    return () => ws.close();
+  }, [resource]);
+
+  return items;
+}
+```
 
 ## Examples
 

@@ -1,12 +1,16 @@
 import express, { Express } from 'express';
 import cors from 'cors';
 import compression from 'compression';
+import { Server } from 'http';
 import { Database } from './database.js';
 import { createRouter, RouterOptions } from './router.js';
 import { createStaticMiddleware, createHomepageMiddleware, StaticOptions } from './static.js';
 import { loadMiddlewares } from './loader.js';
 import { loadRewriteRules, createRewriterMiddleware } from './rewriter.js';
 import { logger } from './logger.js';
+import { createWebSocketServer, broadcast, DbChangeEvent } from './websocket.js';
+
+export type { DbChangeEvent } from './websocket.js';
 
 /**
  * Server configuration options
@@ -16,6 +20,7 @@ export interface ServerOptions extends RouterOptions, StaticOptions {
   host?: string;
   noCors?: boolean;
   noGzip?: boolean;
+  noWs?: boolean;
   delay?: number;
   quiet?: boolean;
   routes?: string;
@@ -120,7 +125,16 @@ export async function createServer(
   });
 
   // API routes
-  const router = createRouter(db, options);
+  const routerOptions: Partial<RouterOptions> = { ...options };
+  if (!options.noWs) {
+    routerOptions.onDbChange = (event: DbChangeEvent): void => {
+      const wss = (app as Express & { _wss?: import('ws').WebSocketServer })._wss;
+      if (wss) {
+        broadcast(wss, event);
+      }
+    };
+  }
+  const router = createRouter(db, routerOptions);
   app.use(router);
 
   // 404 handler
@@ -135,17 +149,17 @@ export async function createServer(
  * Start the server
  *
  * @param app - Express application
- * @param options - Server options (port, host)
+ * @param options - Server options (port, host, noWs)
  * @returns Server instance
  */
 export function startServer(
   app: Express,
-  options: Pick<ServerOptions, 'port' | 'host' | 'quiet'> = {}
-): ReturnType<Express['listen']> {
+  options: Pick<ServerOptions, 'port' | 'host' | 'quiet' | 'noWs'> = {}
+): Server {
   const port = options.port || 3000;
   const host = options.host || 'localhost';
 
-  return app.listen(port, host, () => {
+  const server = app.listen(port, host, () => {
     if (!options.quiet) {
       logger.banner([
         '🚀 API Faker is running!',
@@ -158,4 +172,15 @@ export function startServer(
       ]);
     }
   });
+
+  if (!options.noWs) {
+    const wss = createWebSocketServer(server);
+    // Store WSS on the app for use by the router's onDbChange callback
+    (app as Express & { _wss?: import('ws').WebSocketServer })._wss = wss;
+    if (!options.quiet) {
+      logger.success(`WebSocket server attached (ws://${host}:${String(port)})`);
+    }
+  }
+
+  return server;
 }

@@ -3,6 +3,7 @@ import { Database } from './database.js';
 import { logger } from './logger.js';
 import { parseQuery, applyQuery, generateLinkHeader } from './query.js';
 import { parseRelationships, applyRelationships, getForeignKey } from './relationships.js';
+import { DbChangeEvent } from './websocket.js';
 
 /**
  * Helper to safely get route param (Express guarantees route params exist)
@@ -22,6 +23,7 @@ export interface RouterOptions {
   idField?: string;
   foreignKeySuffix?: string;
   readOnly?: boolean;
+  onDbChange?: (event: DbChangeEvent) => void;
 }
 
 /**
@@ -44,6 +46,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
   const readOnly = options.readOnly || false;
   const idField = options.idField || 'id';
   const foreignKeySuffix = options.foreignKeySuffix || 'Id';
+  const onDbChange = options.onDbChange;
 
   /**
    * Validate Content-Type for write operations
@@ -235,6 +238,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
 
       try {
         const created = await db.create(children, data);
+        onDbChange?.({ type: 'create', resource: children, data: created });
         return res.status(201).json(created);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -262,11 +266,13 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
       // Handle singular resources
       if (!db.isCollection(resource) && db.getCollection(resource) !== undefined) {
         const updated = await db.updateSingular(resource, data);
+        onDbChange?.({ type: 'update', resource, data: updated });
         return res.status(200).json(updated);
       }
 
       // Create in collection
       const created = await db.create(resource, data);
+      onDbChange?.({ type: 'create', resource, data: created });
       return res.status(201).json(created);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -301,6 +307,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
         return res.status(404).json({ error: `Item with id '${id}' not found in '${resource}'` });
       }
 
+      onDbChange?.({ type: 'update', resource, data: updated, id });
       return res.json(updated);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -335,6 +342,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
         return res.status(404).json({ error: `Item with id '${id}' not found in '${resource}'` });
       }
 
+      onDbChange?.({ type: 'update', resource, data: patched, id });
       return res.json(patched);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -368,6 +376,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
 
     try {
       const updated = await db.updateSingular(resource, data);
+      onDbChange?.({ type: 'update', resource, data: updated });
       return res.json(updated);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -406,6 +415,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
     try {
       const merged = { ...current, ...data };
       const updated = await db.updateSingular(resource, merged);
+      onDbChange?.({ type: 'update', resource, data: updated });
       return res.json(updated);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -434,6 +444,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
       return res.status(404).json({ error: `Item with id '${id}' not found in '${resource}'` });
     }
 
+    onDbChange?.({ type: 'delete', resource, id });
     // Return 204 No Content
     return res.status(204).send();
   });
