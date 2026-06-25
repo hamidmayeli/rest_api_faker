@@ -110,7 +110,7 @@ export function loadConfig(configPath: string): Config | null {
     // Validate config properties
     validateConfig(config as Record<string, unknown>);
 
-    return config as Config;
+    return config;
   } catch (error) {
     if (error instanceof Error && error.message.includes('Config file must contain')) {
       throw error;
@@ -234,7 +234,7 @@ function validateConfig(config: Record<string, unknown>): void {
  */
 export function mergeConfig(cliConfig: Partial<Config>, fileConfig: Config | null): Config {
   if (!fileConfig) {
-    return cliConfig as Config;
+    return cliConfig;
   }
 
   // CLI arguments override config file values
