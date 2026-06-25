@@ -82,7 +82,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
       const { data: filtered, total } = applyQuery(data, queryOptions);
 
       // Apply relationships (_embed, _expand)
-      const { embed, expand } = parseRelationships(req.query as Record<string, unknown>);
+      const { embed, expand } = parseRelationships(req.query);
       const withRelationships = applyRelationships(
         filtered as Record<string, unknown>[],
         resource,
@@ -131,7 +131,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
     }
 
     // Apply relationships if requested
-    const { embed, expand } = parseRelationships(req.query as Record<string, unknown>);
+    const { embed, expand } = parseRelationships(req.query);
     if (embed.length > 0 || expand.length > 0) {
       const withRelationships = applyRelationships(
         [item as Record<string, unknown>],

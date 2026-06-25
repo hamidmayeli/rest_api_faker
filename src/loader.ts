@@ -86,10 +86,10 @@ export async function loadMiddlewares(filePath: string): Promise<RequestHandler[
   // Check for default export first (ES modules or wrapped CommonJS)
   let middlewareExport: unknown;
   if (typeof module === 'object' && module !== null && 'default' in module) {
-    const defaultExport = (module as { default: unknown }).default;
+    const defaultExport = (module).default;
     // If default is also an object with a default property, unwrap it
     if (typeof defaultExport === 'object' && defaultExport !== null && 'default' in defaultExport) {
-      middlewareExport = (defaultExport as { default: unknown }).default;
+      middlewareExport = (defaultExport).default;
     } else {
       middlewareExport = defaultExport;
     }

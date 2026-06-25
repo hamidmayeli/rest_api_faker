@@ -132,7 +132,7 @@ export function expandParent<T extends Record<string, unknown>>(
 
     return {
       ...item,
-      [parentPropName]: parent as Record<string, unknown>,
+      [parentPropName]: parent,
     };
   });
 }
