@@ -42,7 +42,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "chokidar": "^5.0.0",
+    "chokidar": "^6.0.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "express": "^5.2.1",
@@ -55,19 +55,20 @@
     "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
-    "@types/node": "^25.3.3",
+    "@types/node": "^26.6.5",
     "@types/supertest": "^7.2.0",
     "@types/yargs": "^17.0.32",
-    "@typescript-eslint/eslint-plugin": "8.59.2",
-    "@typescript-eslint/parser": "8.59.2",
-    "@vitest/coverage-v8": "^4.0.16",
+    "@typescript-eslint/eslint-plugin": "8.72.0",
+    "@typescript-eslint/parser": "8.72.0",
+    "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
     "nodemon": "^3.1.14",
     "prettier": "^3.2.4",
     "supertest": "^7.1.4",
-    "typescript": "^6.0.2",
-    "typescript-eslint": "8.59.2",
-    "vitest": "^4.0.16"
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript7": "npm:typescript@^7.0.2",
+    "typescript-eslint": "8.72.0",
+    "vitest": "^5.0.5"
   }
 }
